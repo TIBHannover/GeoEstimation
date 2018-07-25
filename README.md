@@ -8,9 +8,10 @@ Forthcoming: *European Conference on Computer Vision (ECCV).* Munich, 2018.
 # Content
 
 This repository contains:
-* Meta information for the MP-16 training dataset (TODO) as well as the
-Im2GPS ([im2gps_places365.csv](im2gps_places365.csv)) and Im2GPS3k ([im2gps3k_places365.csv](im2gps3k_places365.csv))
-test datasets:
+* Meta information for the MP-16 training dataset
+([mp16_places365.csv](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365.csv))
+as well as the Im2GPS ([im2gps_places365.csv](meta/im2gps_places365.csv)) and
+Im2GPS3k ([im2gps3k_places365.csv](meta/im2gps3k_places365.csv)) test datasets:
     - Relative image path containing the Flickr-ID
     - Flickr Author-ID
     - Ground-truth latitude
@@ -22,9 +23,9 @@ test datasets:
     - Probability for *S_3* concept *natural*
     - Probability for *S_3* concept *urban*
 * List of geographical cells for all partitionings:
-    - coarse: [cells_50_1000.csv](cells_50_1000.csv)
-    - middle: [cells_50_2000.csv](cells_50_2000.csv)
-    - fine: [cells_50_5000.csv](cells_50_5000.csv)
+    - coarse: [cells_50_1000.csv](geo-cells/cells_50_1000.csv)
+    - middle: [cells_50_2000.csv](geo-cells/cells_50_2000.csv)
+    - fine: [cells_50_5000.csv](geo-cells/cells_50_5000.csv)
 * Results for the reported approaches on both test datasets <approach_parameters.csv>:
     - Relative image path containing the Flickr-ID
     - Ground-truth latitude
