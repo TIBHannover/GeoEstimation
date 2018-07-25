@@ -31,7 +31,7 @@ training dataset as well as the [Im2GPS](meta/im2gps_places365.csv) and
     - Number of images in the geo-cell
     - Mean latitude of all images in the geo-cell
     - Mean longitude of all images in the geo-cell
-* Results for the reported approaches on [Im2GPS](results/Im2GPS) and [Im2GPS3k](results/Im2GPS3k) <approach_parameters.csv>:
+* Results for the reported approaches on [Im2GPS](results/im2gps) and [Im2GPS3k](results/im2gps3k) <approach_parameters.csv>:
     - Relative image path containing the Flickr-ID
     - Ground-truth latitude
     - Predicted latitude
