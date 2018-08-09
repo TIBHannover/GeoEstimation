@@ -1,7 +1,7 @@
 $(document).ready(function () {
 
     var IMG_PATH = "";
-    var CSV_PATH = "data/scene_M_p_im2gps.csv";
+    var CSV_PATH = "demo/data/scene_M_p_im2gps.csv";
 
     var selectedKey = -1; // current selected key
     var dataOpen = new Map(); // keeps not annotated images
@@ -9,8 +9,8 @@ $(document).ready(function () {
 
     // map marker
     var markerUser = createUserMarker();
-    var markerEstimated = createMarker('leaflet/images/custom/marker_machine.svg');
-    var markerReal = createMarker('leaflet/images/custom/marker_GT_world.svg');
+    var markerEstimated = createMarker('demo/leaflet/images/custom/marker_machine.svg');
+    var markerReal = createMarker('demo/leaflet/images/custom/marker_GT_world.svg');
 
     // stats
     var number_images = 0;
@@ -24,7 +24,7 @@ $(document).ready(function () {
      */
     function createUserMarker() {
         var userIcon = L.icon({
-            iconUrl: 'leaflet/images/custom/marker_user.svg',
+            iconUrl: 'demo/leaflet/images/custom/marker_user.svg',
             iconSize: [34, 57],
             iconAnchor: [17, 57],
             popupAnchor: [0, -57]
@@ -238,7 +238,7 @@ $(document).ready(function () {
             markerReal.setLatLng(new L.LatLng(item.gt_lat, item.gt_long));
             markerEstimated.setLatLng(new L.LatLng(item.predicted_lat, item.predicted_long));
             markerEstimated.addTo(map).update();
-            
+
             markerReal.addTo(map).update();
 
             // distanceTo() calculates the great circle distance (equal to stored values)
