@@ -8,9 +8,9 @@ $(document).ready(function () {
     var dataClosed = new Map(); // keeps annotated images
 
     // map marker
-    var markerUser = createUserMarker();
-    var markerEstimated = createMarker('demo/leaflet/images/custom/marker_machine.svg');
-    var markerReal = createMarker('demo/leaflet/images/custom/marker_GT_world.svg');
+    var markerUser = createUserMarker(-20);
+    var markerEstimated = createMarker('demo/leaflet/images/custom/marker_machine.svg', 0);
+    var markerReal = createMarker('demo/leaflet/images/custom/marker_GT_world.svg', 0);
 
     // stats
     var number_images = 0;
@@ -22,7 +22,7 @@ $(document).ready(function () {
      * Creates a custom user marker
      * and returns the marker.
      */
-    function createUserMarker() {
+    function createUserMarker(deg) {
         var userIcon = L.icon({
             iconUrl: 'demo/leaflet/images/custom/marker_user.svg',
             iconSize: [34, 57],
@@ -32,7 +32,8 @@ $(document).ready(function () {
 
         var options = {
             draggable: true,
-            icon: userIcon
+            icon: userIcon,
+            rotationAngle: deg
         };
         return L.marker([0.0, 0.0], options);
     }
@@ -41,7 +42,7 @@ $(document).ready(function () {
      * Creates a custom marker for GT and Machine.
      * @param {String} path
      */
-    function createMarker(path) {
+    function createMarker(path, deg) {
         var userIcon = L.icon({
             iconUrl: path,
             iconSize: [34, 57],
@@ -50,7 +51,8 @@ $(document).ready(function () {
         });
 
         var options = {
-            icon: userIcon
+            icon: userIcon,
+            rotationAngle: deg
         };
         var marker = L.marker([0.0, 0.0], options);
 
