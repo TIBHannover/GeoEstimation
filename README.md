@@ -5,6 +5,10 @@ This is the official GitHub page for the paper:
 "Geolocation Estimation of Photos using a Hierarchical Model and Scene Classification".
 Forthcoming: *European Conference on Computer Vision (ECCV).* Munich, 2018.
 
+# Demo
+
+A graphical demonstration where you can compete against the deep learning approach presented in the publication can be found on: https://tibhannover.github.io/GeoEstimation/
+
 # Content
 
 This repository contains:
