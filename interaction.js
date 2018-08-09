@@ -8,9 +8,9 @@ $(document).ready(function () {
     var dataClosed = new Map(); // keeps annotated images
 
     // map marker
-    var markerUser = createUserMarker(-20);
-    var markerEstimated = createMarker('demo/leaflet/images/custom/marker_machine.svg', 0);
-    var markerReal = createMarker('demo/leaflet/images/custom/marker_GT_world.svg', 0);
+    var markerUser = createUserMarker(0);
+    var markerEstimated = createMarker('demo/leaflet/images/custom/marker_machine.svg', -10);
+    var markerReal = createMarker('demo/leaflet/images/custom/marker_GT_world.svg', 10);
 
     // stats
     var number_images = 0;
