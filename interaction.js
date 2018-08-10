@@ -183,9 +183,9 @@ $(document).ready(function () {
         $("#list-images-open").empty();
         $("#list-images-closed").empty();
         $("#annotated_total_text").text("Annotated images: 0")
-        $("#better_than_model_text").text("Better than model: 0.0 %")
-        $("#mean_error_user_text").text("Your mean error: 0.0 km");
-        $("#mean_error_model_text").text("Model's mean error: 0.0 km");
+        $("#rate_of_sucess_text").text("Rate of sucess: ---")
+        $("#mean_error_user_text").text("Your mean error: ---");
+        $("#mean_error_model_text").text("Model's mean error: ---");
 
         initialize_data();
 
@@ -307,10 +307,9 @@ $(document).ready(function () {
             number_user_hit_model++;
         }
         $("#annotated_total_text").text("Annotated images: " + number_images)
-        $("#better_than_model_text").text("Better than model: " + (number_user_hit_model / number_images * 100).toFixed(1) + " %");
+        $("#rate_of_sucess_text").text("Rate of sucess: " + number_user_hit_model + " / " + number_images + " (" + (number_user_hit_model / number_images * 100).toFixed(1) + " %)");
         $("#mean_error_user_text").text("Your mean error: " + (distance_user_sum / number_images).toFixed(1) + " km");
         $("#mean_error_model_text").text("Model's mean error: " + (distance_model_sum / number_images).toFixed(1) + " km");
-
     });
 
     // update user marker when click on map
