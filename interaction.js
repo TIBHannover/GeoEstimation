@@ -1,6 +1,6 @@
 $(document).ready(function () {
 
-    var IMG_PATH = "";
+    var IMG_PATH = ""; // when using local stored images
     var CSV_PATH = "demo/data/scene_M_p_im2gps.csv";
 
     var selectedKey = -1; // current selected key
@@ -35,7 +35,7 @@ $(document).ready(function () {
             icon: userIcon,
             rotationAngle: deg
         };
-        return L.marker([0.0, 0.0], options);
+        return L.marker([20.0, 0.0], options);
     }
 
     /**
@@ -54,7 +54,7 @@ $(document).ready(function () {
             icon: userIcon,
             rotationAngle: deg
         };
-        var marker = L.marker([0.0, 0.0], options);
+        var marker = L.marker([20.0, 0.0], options);
 
         marker.bindPopup("");
         return marker;
@@ -71,6 +71,30 @@ $(document).ready(function () {
         return false;
     }
 
+    // todo: only use css
+    function updateListSize() {
+        $("#list-images-open").height(
+            $(window).height()
+            - $(".navbar").height() 
+            - $(".nav-tabs").height() 
+            - $("#btn_random_image").height()
+            - 72
+    
+        );
+
+        $("#list-images-closed").height(
+            $(window).height()
+            - $(".navbar").height() 
+            - $(".nav-tabs").height() 
+            - 52
+    
+        );
+    }
+
+    $(window).on('resize', function(){
+        updateListSize();
+    });
+
     /**
      * Performs an ajax request to the CSV file and fills the data structures.
      */
@@ -80,6 +104,7 @@ $(document).ready(function () {
             url: CSV_PATH,
             dataType: "text",
             success: function (response) {
+
                 console.log("read csv file");
                 list = $.csv.toObjects(response);
                 list = list.sort(function () { return 0.5 - Math.random() }); // shuffle list
@@ -103,8 +128,10 @@ $(document).ready(function () {
                 $("#btn_show_result").prop("disabled", false);
 
                 // tab text
-                $("#open_tab_title").text("Open (" + dataOpen.size + "/" + (dataOpen.size + dataClosed.size) + ")");
-                $("#closed_tab_title").text("Annotated (" + dataClosed.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+                $("#open_tab_title").html("Open<br>(" + dataOpen.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+                $("#closed_tab_title").html("Annotated<br> (" + dataClosed.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+            
+                updateListSize();
             }
         });
 
@@ -122,6 +149,7 @@ $(document).ready(function () {
             "<img src='" + img_path + "'  alt='' class='img-fluid round-borders'>" +
             "</a>"
         );
+
     }
 
     /**
@@ -135,18 +163,19 @@ $(document).ready(function () {
 
     function init(item) {
         // set as main image
-        $("#image_full").attr("src", IMG_PATH + item.url);
+        $(".image_full").attr("src", IMG_PATH + item.url);
 
         // photo licence
         $("#license_text").text("©" + item.author + ' ' + item.license_name)
 
         // map preferences
-        map.setZoom(2);
-        markerReal.remove();
-        markerEstimated.remove();
-        markerUser.setLatLng([0.0, 0.0]);
         markerReal.setLatLng(new L.LatLng(item.gt_lat, item.gt_long));
         markerEstimated.setLatLng(new L.LatLng(item.predicted_lat, item.predicted_long));
+        map.removeLayer(markerReal);
+        map.removeLayer(markerEstimated);
+        
+        map.setView([0.0, 0.0], zoom=2);
+        markerUser.setLatLng([0.0, 0.0]);
 
         // set results to default
         $("#distance_model").removeClass("alert-danger alert-success").addClass("alert-secondary");
@@ -187,6 +216,8 @@ $(document).ready(function () {
         $("#mean_error_user_text").text("Your mean error: ---");
         $("#mean_error_model_text").text("Model's mean error: ---");
 
+        $("#open_tab_title").tab("show");
+
         initialize_data();
 
     });
@@ -220,27 +251,27 @@ $(document).ready(function () {
         // get key from data alias
         var $this = $(this);
         selectedKey = $this.data('alias');
-        console.debug("select key: " + selectedKey);
+        console.debug("list group item selected");
 
         // in which list the event was triggered?
         if (dataOpen.has(selectedKey)) {
             // just initialize this image
+            console.debug("selected element from open " + dataOpen.get(selectedKey));
             init(dataOpen.get(selectedKey));
             $("#btn_show_result").prop("disabled", false);
 
         } else if (dataClosed.has(selectedKey)) {
             // view actually annotated results.
-            console.debug(dataClosed.get(selectedKey));
+            console.debug("selected element from closed " + dataClosed.get(selectedKey));
             $("#btn_show_result").prop("disabled", true);
 
             var item = dataClosed.get(selectedKey);
-            $("#image_full").attr("src", IMG_PATH + item.url);
-            map.setZoom(2);
+            $(".image_full").attr("src", IMG_PATH + item.url);
+            map.setView([0.0, 0.0], zoom=2);
             markerUser.setLatLng(new L.LatLng(item.marker_user_lat, item.marker_user_lng));
             markerReal.setLatLng(new L.LatLng(item.gt_lat, item.gt_long));
             markerEstimated.setLatLng(new L.LatLng(item.predicted_lat, item.predicted_long));
             markerEstimated.addTo(map).update();
-
             markerReal.addTo(map).update();
 
             // distanceTo() calculates the great circle distance (equal to stored values)
@@ -261,10 +292,12 @@ $(document).ready(function () {
         $this.prop("disabled", true);
 
         // update markup popups and positions
+        map.setView([0.0, 0.0], zoom=2);
         markerEstimated.bindPopup("<b>Model:</b><br>" + markerEstimated.getLatLng().toString());
         markerReal.bindPopup("<b>Ground Truth:</b><br>" + markerReal.getLatLng().toString());
         markerEstimated.addTo(map).update();
         markerReal.addTo(map).update();
+        
 
         // show distance results
         var distance_user = markerReal.getLatLng().distanceTo(markerUser.getLatLng()) / 1000;
@@ -296,8 +329,8 @@ $(document).ready(function () {
         dataOpen.delete(selectedKey); // remove item from dataOpen
         $("#" + selectedKey).remove() // remove item from open image list
 
-        $("#open_tab_title").text("Open (" + dataOpen.size + "/" + (dataOpen.size + dataClosed.size) + ")");
-        $("#closed_tab_title").text("Annotated (" + dataClosed.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+        $("#open_tab_title").html("Open<br>(" + dataOpen.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+        $("#closed_tab_title").html("Annotated<br>(" + dataClosed.size + "/" + (dataOpen.size + dataClosed.size) + ")");
 
         // update stats and view results
         number_images++;
@@ -321,7 +354,10 @@ $(document).ready(function () {
     // when document ready:
 
     // build the map
-    var map = L.map('map', {}).setView([0.0, 0.0], 2);
+    var map = L.map('map', {
+        center: L.latLng([0.0, 0.0]),
+        zoom: 2
+    });
     var popup = L.popup();
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
         maxZoom: 13,
