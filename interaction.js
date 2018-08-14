@@ -6,6 +6,8 @@ $(document).ready(function () {
     var selectedKey = -1; // current selected key
     var dataOpen = new Map(); // keeps not annotated images
     var dataClosed = new Map(); // keeps annotated images
+	
+	var move = true;
 
     // map marker
     var markerUser = createUserMarker(0);
@@ -35,7 +37,7 @@ $(document).ready(function () {
             icon: userIcon,
             rotationAngle: deg
         };
-        return L.marker([20.0, 0.0], options);
+        return L.marker([0.0, 0.0], options);
     }
 
     /**
@@ -174,8 +176,10 @@ $(document).ready(function () {
         map.removeLayer(markerReal);
         map.removeLayer(markerEstimated);
         
-        map.setView([0.0, 0.0], zoom=2);
+        map.setView([15.0, 0.0], zoom=2);
         markerUser.setLatLng([0.0, 0.0]);
+		markerUser.dragging.enable();
+		move = true;
 
         // set results to default
         $("#distance_model").removeClass("alert-danger alert-success").addClass("alert-secondary");
@@ -226,13 +230,10 @@ $(document).ready(function () {
      * Choose a random image from dataOpen.
      */
     $("#btn_random_image").click(function () {
-        if (dataOpen.size == 0) {
-            $("#btn_show_result").prop("disabled", true);
-            return;
-        }
-
+		if (dataOpen.size == 0) {
+			return;
+		}
         $("#btn_show_result").prop("disabled", false); // activate button
-
         selectedKey = getRandomKey();
         console.debug("choose a random image: " + selectedKey);
         init(dataOpen.get(selectedKey));
@@ -243,11 +244,6 @@ $(document).ready(function () {
      * Click event listener for current selected list-group-item.
      */
     $(document).on('click', '.list-group-item', function () {
-        if (dataOpen.size == 0) {
-            $("#btn_show_result").prop("disabled", true);
-            return;
-        }
-
         // get key from data alias
         var $this = $(this);
         selectedKey = $this.data('alias');
@@ -267,7 +263,7 @@ $(document).ready(function () {
 
             var item = dataClosed.get(selectedKey);
             $(".image_full").attr("src", IMG_PATH + item.url);
-            map.setView([0.0, 0.0], zoom=2);
+            map.setView([15.0, 0.0], zoom=2);
             markerUser.setLatLng(new L.LatLng(item.marker_user_lat, item.marker_user_lng));
             markerReal.setLatLng(new L.LatLng(item.gt_lat, item.gt_long));
             markerEstimated.setLatLng(new L.LatLng(item.predicted_lat, item.predicted_long));
@@ -292,11 +288,13 @@ $(document).ready(function () {
         $this.prop("disabled", true);
 
         // update markup popups and positions
-        map.setView([0.0, 0.0], zoom=2);
+        map.setView([15.0, 0.0], zoom=2);
         markerEstimated.bindPopup("<b>Model:</b><br>" + markerEstimated.getLatLng().toString());
         markerReal.bindPopup("<b>Ground Truth:</b><br>" + markerReal.getLatLng().toString());
         markerEstimated.addTo(map).update();
         markerReal.addTo(map).update();
+		markerUser.dragging.disable();
+		move = false;
         
 
         // show distance results
@@ -347,6 +345,9 @@ $(document).ready(function () {
 
     // update user marker when click on map
     function onMapClick(e) {
+		if (!move) {
+			return;
+		}
         markerUser.setLatLng(e.latlng);
         markerUser.bindPopup("<b>Your estimation:</b><br>" + e.latlng.toString());
     }
@@ -356,7 +357,7 @@ $(document).ready(function () {
     // build the map
     var map = L.map('map', {
         center: L.latLng([0.0, 0.0]),
-        zoom: 2
+        zoom: 1
     });
     var popup = L.popup();
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
@@ -366,6 +367,8 @@ $(document).ready(function () {
             'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         id: 'mapbox.streets',
     }).addTo(map);
+	
+	
 
     map.on("click", onMapClick); // set click listener
     markerUser.addTo(map); // add user marker
