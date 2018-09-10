@@ -52,9 +52,10 @@ def main():
         ge_urban = geo_estimation.GeoEstimator(
             os.path.join(cur_path, 'models', 'ISN_M_urban', 'model.ckpt'), scope='urban')
     elif args.model == 'base_L':
-        ge_base = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'base_M', 'model.ckpt'))
+        ge_base = geo_estimation.GeoEstimator(
+            os.path.join(cur_path, 'models', 'base_L_m', 'model.ckpt'), scope='base_L_m')
     elif args.model == 'base_M':
-        ge_base = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'base_M', 'model.ckpt'))
+        ge_base = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'base_M', 'model.ckpt'), scope='base_M')
 
     # predict scene label
     if args.model == 'ISN':
