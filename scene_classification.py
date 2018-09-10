@@ -1,12 +1,13 @@
 import argparse
-import caffe
 import csv
 import numpy as np
 import os
 import sys
+
+os.environ['GLOG_minloglevel'] = '3'  # Suppresses unnecessarily excessive console output
+import caffe
 import tensorflow as tf
 
-os.environ['GLOG_minloglevel'] = '2'
 cur_dir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -75,11 +76,11 @@ class SceneClassifier():
         scene_label = np.argmax(scene_prob, axis=0)
 
         if scene_label == 0:
-            print('Images shows indoor scenery!')
+            print('Image shows indoor scenery!')
         elif scene_label == 1:
-            print('Images shows natural scenery!')
+            print('Image shows natural scenery!')
         elif scene_label == 2:
-            print('Images shows urban scenery!')
+            print('Image shows urban scenery!')
 
         return scene_label
 
