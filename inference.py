@@ -22,7 +22,6 @@ def parse_args():
         default='ISN',
         choices=['ISN', 'base_L', 'base_M'],
         help='Choose from [ISN, base_L, base_M]')
-    parser.add_argument('-p', '--path', type=str, default=cur_path, help='Path to model files')
     args = parser.parse_args()
     return args
 
@@ -30,9 +29,6 @@ def parse_args():
 def main():
     # load arguments
     args = parse_args()
-
-    if args.path is not None:
-        cur_path = args.path
 
     # define logging level and format
     level = logging.ERROR
@@ -43,7 +39,7 @@ def main():
     # init models
     if args.model == 'ISN':
         # init model for scene_classification
-        # sc = scene_classification.SceneClassifier()
+        sc = scene_classification.SceneClassifier()
 
         # init models for geolocation estimation
         # init ISN for concept 'indoor'
@@ -62,14 +58,21 @@ def main():
 
     # predict scene label
     if args.model == 'ISN':
-        scene_probabilities = get_scene_probabilities(args.image)
-        scene_label = get_scene_label(scene_probabilities)
+        # get scene label
+        scene_probabilities = sc.get_scene_probabilities(args.image)
+        scene_label = sc.get_scene_label(scene_probabilities)
     else:
         scene_label = -1
 
-    # predict geo cell
-
-    # predict location
+    # predict geolocation depending on model and scenery
+    if scene_label == -1:
+        lat, lng = ge_base.get_prediction(args.image)
+    if scene_label == 0:
+        lat, lng = ge_indoor.get_prediction(args.image)
+    if scene_label == 1:
+        lat, lng = ge_natural.get_prediction(args.image)
+    if scene_label == 2:
+        lat, lng = ge_urban.get_prediction(args.image)
 
     return 0
 

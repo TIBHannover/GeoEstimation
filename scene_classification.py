@@ -71,11 +71,11 @@ class SceneClassifier():
     def get_scene_label(self, scene_prob):
         scene_label = np.argmax(scene_prob, axis=0)
 
-        if places3_label == 0:
+        if scene_label == 0:
             logging.info('Images shows indoor scenery!')
-        elif places3_label == 1:
+        elif scene_label == 1:
             logging.info('Images shows natural scenery!')
-        elif places3_label == 2:
+        elif scene_label == 2:
             logging.info('Images shows urban scenery!')
 
         return scene_label
