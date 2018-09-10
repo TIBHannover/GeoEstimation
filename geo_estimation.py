@@ -16,7 +16,7 @@ import cnn_architectures
 
 class GeoEstimator():
 
-    def __init__(self, model_file, cnn_input_size=224):
+    def __init__(self, model_file, cnn_input_size=224, session=None, scope=None):
         self._cnn_input_size = cnn_input_size
 
         # load model config
@@ -44,22 +44,34 @@ class GeoEstimator():
         # image = img_preprocess(image_content, cfg['input']['size'])
         self._image_ph = tf.placeholder(shape=[3, self._cnn_input_size, self._cnn_input_size, 3], dtype=tf.float32)
 
-        config = tf.ConfigProto()
-        config.log_device_placement = True
-        config.gpu_options.allow_growth = True
+        if session is not None:
+            self.sess = session
+        else:
+            config = tf.ConfigProto()
+            config.log_device_placement = True
+            config.gpu_options.allow_growth = True
+            self.sess = tf.Session(config=config)
 
-        self.sess = tf.Session(config=config)
+        if scope is not None:
+            with tf.variable_scope(scope) as scope:
+                self.scope = scope
+        else:
+            self.scope = tf.get_variable_scope()
 
-        with tf.device('/gpu:0'):
-            net, _ = cnn_architectures.create_model(
-                cfg['architecture'], self._image_ph, is_training=False, num_classes=None, reuse=None)
+        with tf.variable_scope(self.scope):
+            with tf.device('/gpu:0'):
+                net, _ = cnn_architectures.create_model(
+                    cfg['architecture'], self._image_ph, is_training=False, num_classes=None, reuse=None)
 
-            with tf.variable_scope('classifier_geo', reuse=None):
-                self.logits = slim.conv2d(
-                    net, np.sum(classes_geo), [1, 1], activation_fn=None, normalizer_fn=None, scope='logits')
-                self.logits = tf.squeeze(self.logits)
+                with tf.variable_scope('classifier_geo', reuse=None):
+                    self.logits = slim.conv2d(
+                        net, np.sum(classes_geo), [1, 1], activation_fn=None, normalizer_fn=None, scope='logits')
+                    self.logits = tf.squeeze(self.logits)
 
-        saver = tf.train.Saver()  #tf.all_variables(), reshape=True)
+        var_list = {x.name.replace(self.scope.name + '/', '')[:-2]: x for x in tf.global_variables(self.scope.name)}
+        print(var_list)
+        saver = tf.train.Saver(var_list=var_list)
+
         saver.restore(self.sess, model_file)
         logging.info('Restore model from: {}'.format(model_file))
 
