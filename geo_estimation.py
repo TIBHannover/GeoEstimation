@@ -2,11 +2,12 @@ import argparse
 import caffe
 import csv
 import json
-import logging
 import numpy as np
 import os
 import s2sphere as s2
 import sys
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppresses unnecessarily excessive console output
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
@@ -16,7 +17,9 @@ import cnn_architectures
 
 class GeoEstimator():
 
-    def __init__(self, model_file, cnn_input_size=224, session=None, scope=None):
+    def __init__(self, model_file, cnn_input_size=224, scope=None, use_cpu=False):
+        print('Initialize {} geolocation model.'.format(scope))
+
         self._cnn_input_size = cnn_input_size
 
         # load model config
@@ -24,6 +27,7 @@ class GeoEstimator():
             cfg = json.load(cfg_file)
 
         # get partitioning
+        print('\tGet geographical partitioning(s) ... ')
         partitioning_files = []
         for partitioning in cfg['partitionings']:
             partitioning_files.append(os.path.join(os.path.dirname(__file__), 'geo-cells', partitioning))
@@ -40,17 +44,14 @@ class GeoEstimator():
         self._cell_hierarchy = self._get_geographical_hierarchy(classes_geo, hexids2classes, class2hexid, cell_centers)
 
         # build cnn
-        # image_content = tf.read_file(image_path)
-        # image = img_preprocess(image_content, cfg['input']['size'])
         self._image_ph = tf.placeholder(shape=[3, self._cnn_input_size, self._cnn_input_size, 3], dtype=tf.float32)
 
-        if session is not None:
-            self.sess = session
-        else:
-            config = tf.ConfigProto()
-            config.log_device_placement = True
-            config.gpu_options.allow_growth = True
-            self.sess = tf.Session(config=config)
+        config = tf.ConfigProto()
+        config.log_device_placement = True
+        config.gpu_options.allow_growth = True
+        self.sess = tf.Session(config=config)
+
+        print('\tRestore model from: {}'.format(model_file))
 
         if scope is not None:
             with tf.variable_scope(scope) as scope:
@@ -58,8 +59,13 @@ class GeoEstimator():
         else:
             self.scope = tf.get_variable_scope()
 
+        if use_cpu:
+            device = '/cpu:0'
+        else:
+            device = '/gpu:0'
+
         with tf.variable_scope(self.scope):
-            with tf.device('/gpu:0'):
+            with tf.device(device):
                 net, _ = cnn_architectures.create_model(
                     cfg['architecture'], self._image_ph, is_training=False, num_classes=None, reuse=None)
 
@@ -69,11 +75,9 @@ class GeoEstimator():
                     self.logits = tf.squeeze(self.logits)
 
         var_list = {x.name.replace(self.scope.name + '/', '')[:-2]: x for x in tf.global_variables(self.scope.name)}
-        print(var_list)
         saver = tf.train.Saver(var_list=var_list)
 
         saver.restore(self.sess, model_file)
-        logging.info('Restore model from: {}'.format(model_file))
 
     def get_prediction(self, img_path):
         # read image
@@ -128,7 +132,7 @@ class GeoEstimator():
 
         # get gps coordinate from class
         lat, lng = self._cell_centers[self._num_partitionings - 1][prediction]
-        logging.info('Predicted coordinate (lat, lng): ({}, {})'.format(lat, lng))
+        print('Predicted coordinate (lat, lng): ({}, {})'.format(lat, lng))
         return lat, lng
 
     def _softmax(self, x):
@@ -259,9 +263,9 @@ class GeoEstimator():
 
 def parse_args():
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-v', '--verbose', action='store_true', help='verbose output')
     parser.add_argument('-i', '--image', type=str, required=True, help='path to image file')
     parser.add_argument('-m', '--model', type=str, required=True, help='path to model file')
+    parser.add_argument('-c', '--cpu', action='store_true', help='use cpu')
     args = parser.parse_args()
     return args
 
@@ -270,18 +274,16 @@ def main():
     # load arguments
     args = parse_args()
 
-    # define logging level and format
-    level = logging.ERROR
-    if args.verbose:
-        level = logging.DEBUG
-    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=level)
+    # check if gpu is available
+    if not tf.test.is_gpu_available():
+        print('No GPU available. Using CPU instead ... ')
+        args.cpu = True
 
     # init scene classifier
-    ge = GeoEstimator(args.model)
+    ge = GeoEstimator(args.model, scope='geo', use_cpu=args.cpu)
 
     # predict scene label
     pred = ge.get_prediction(args.image)
-    print(pred)
 
     return 0
 
