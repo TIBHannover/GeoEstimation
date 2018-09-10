@@ -73,11 +73,11 @@ http://places2.csail.mit.edu/download.html
 
 All models were trained using TensorFlow
 
-* Baseline approach for middle partitioning: TODO
-* Multi-partitioning baseline approach: TODO
-* Multi-partitioning Individual Scenery Network for *S_3* concept *indoor*: TODO
-* Multi-partitioning Individual Scenery Network for *S_3* concept *natural*: TODO
-* Multi-partitioning Individual Scenery Network for *S_3* concept *urban*: TODO
+* Baseline approach for middle partitioning: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/base_L_m.tar.gz)
+* Multi-partitioning baseline approach: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/base_M.tar.gz)
+* Multi-partitioning Individual Scenery Network for *S_3* concept *indoor*: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/ISN_M_indoor.tar.gz)
+* Multi-partitioning Individual Scenery Network for *S_3* concept *natural*: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/ISN_M_natural.tar.gz)
+* Multi-partitioning Individual Scenery Network for *S_3* concept *urban*: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/ISN_M_urban.tar.gz)
 
 We are currently working on a deploy source code.
 
