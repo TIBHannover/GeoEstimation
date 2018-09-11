@@ -69,7 +69,7 @@ https://github.com/CSAILVision/places365
 In order to generate the labels for the superordinate scene categories the *Places365 hierarchy* is used:
 http://places2.csail.mit.edu/download.html
 
-# Model
+# Geolocation Models
 
 All models were trained using TensorFlow
 
@@ -80,6 +80,36 @@ All models were trained using TensorFlow
 * Multi-partitioning Individual Scenery Network for *S_3* concept *urban*: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/ISN_M_urban.tar.gz)
 
 We are currently working on a deploy source code.
+
+# Requirements
+Please make sure to have the following python3 libraries installed:
+* caffe (pycaffe)
+* csv
+* numpy
+* s2sphere
+* tensorflow
+
+
+# Installation
+1. Clone this repository:
+```
+git clone git@github.com:TIBHannover/GeoEstimation.git
+```
+2. Either use the provided ```downloader.py``` to get all necessary files or follow these instructions:
+    * Download the Places365 ResNet 152 model for scene classifcation as well as the hierarchy file and save all files in a new folder called */resources*
+    * Download and extract the TensorFlow model files for geolocation and save them in a new folder called */models*.
+3. Run the inference script by executing the following command with an image of your choice:
+```
+python inference.py -i <PATH/TO/IMG/FILE>
+```
+You can choose one of the following models for geolocatization: *Model=[ISNs, base_M, base_L_m]*. *ISNs* are the standard model.
+```
+python inference.py -i <PATH/TO/IMG/FILE> -m <MODEL>
+```
+If you want to run the code on the cpu please execute the following command
+```
+python inference.py -i <PATH/TO/IMG/FILE> -m <MODEL> -c
+```
 
 # LICENSE
 
