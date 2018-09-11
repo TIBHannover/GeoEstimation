@@ -47,7 +47,7 @@ class GeoEstimator():
         self._image_ph = tf.placeholder(shape=[3, self._cnn_input_size, self._cnn_input_size, 3], dtype=tf.float32)
 
         config = tf.ConfigProto()
-        config.log_device_placement = True
+        #config.log_device_placement = True
         config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=config)
 
