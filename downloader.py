@@ -79,7 +79,11 @@ for filename, url in urls.items():
                                                                            length / (1024 * 1024)),
                     end='')
 
+        print()
+
         if 'models' in out_path:
             print('Extracting {}'.format(out_path))
             tf = tarfile.open(out_path)
             tf.extractall(path=os.path.dirname(out_path))
+
+        print('DONE!')
