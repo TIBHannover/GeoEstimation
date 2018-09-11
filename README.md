@@ -95,8 +95,8 @@ Please make sure to have the following python3 libraries installed:
 ```
 git clone git@github.com:TIBHannover/GeoEstimation.git
 ```
-2. Either use the provided using ```python downloader.py``` to get all necessary files or follow these instructions:
-    * Download the Places365 ResNet 152 model for scene classifcation as well as the hierarchy file and save all files in a new folder called */resources*
+2. Either use the provided downloader using ```python downloader.py``` to get all necessary files or follow these instructions:
+    * Download the Places365 ResNet 152 model for scene classification as well as the hierarchy file and save all files in a new folder called */resources*
     * Download and extract the TensorFlow model files for geolocation and save them in a new folder called */models*.
 3. Run the inference script by executing the following command with an image of your choice:
 ```
