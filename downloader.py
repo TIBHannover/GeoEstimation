@@ -48,6 +48,13 @@ for filename, url in urls.items():
             continue
 
     response = urlopen(url)
+    length = response.getheader('content-length')
+
+    if length:
+        length = int(length)
+        blocksize = max(4096, length // 100)
+    else:
+        blocksize = BUFFER_SIZE  # if response does not contain content-length
 
     print('Downloading from URL: {}'.format(url))
 
@@ -56,12 +63,21 @@ for filename, url in urls.items():
     else:
         out_path = os.path.join(cur_dir, 'models', filename)
 
+    size = 0
+
     with open(out_path, 'wb') as f:
         while True:
-            chunk = response.read(BUFFER_SIZE)
+            chunk = response.read(blocksize)
             if (not chunk):
                 break
             f.write(chunk)
+            size += len(chunk)
+
+            if length:
+                print(
+                    '\tProgress: {:.0f}% ({:.2f} MB / {:.2f} MB)\r'.format(100 * size / length, size / (1024 * 1024),
+                                                                           length / (1024 * 1024)),
+                    end='')
 
         if 'models' in out_path:
             print('Extracting {}'.format(out_path))
