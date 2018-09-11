@@ -4,6 +4,7 @@ import csv
 import json
 import numpy as np
 import os
+import re
 import s2sphere as s2
 import sys
 
@@ -74,7 +75,9 @@ class GeoEstimator():
                         net, np.sum(classes_geo), [1, 1], activation_fn=None, normalizer_fn=None, scope='logits')
                     self.logits = tf.squeeze(self.logits)
 
-        var_list = {x.name.replace(self.scope.name + '/', '')[:-2]: x for x in tf.global_variables(self.scope.name)}
+        var_list = {
+            re.sub('^' + self.scope.name + '/', '', x.name)[:-2]: x for x in tf.global_variables(self.scope.name)
+        }
         saver = tf.train.Saver(var_list=var_list)
 
         saver.restore(self.sess, model_file)
@@ -280,7 +283,7 @@ def main():
         args.cpu = True
 
     # init scene classifier
-    ge = GeoEstimator(args.model, scope='geo', use_cpu=args.cpu)
+    ge = GeoEstimator(args.model, use_cpu=args.cpu)
 
     # predict scene label
     pred = ge.get_prediction(args.image)
