@@ -91,7 +91,7 @@ $(document).ready(function () {
         }
         if ($(window).width() > 768) {
             $('#map').height($('#image-card').height() - $('#legend').height() - 4);
-            
+
         }
     }
 
@@ -133,7 +133,7 @@ $(document).ready(function () {
                 $(".btn_show_result").prop("disabled", false);
 
                 updateTabText();
-                
+
                 updateMapSize();
             }
         });
@@ -148,7 +148,7 @@ $(document).ready(function () {
      * @param {*} key the image id
      */
     function addImageToList(img_path, index, key) {
-        
+
         $("#list-images-open").append(
             "<a class='list-group-item' data-toggle='list' data-alias='" + index + "' id='" + index + "'>" +
             "<img src='" + img_path + "'  alt='' class='img-fluid round-borders'>" +
@@ -166,10 +166,10 @@ $(document).ready(function () {
     }
 
     function init(item) {
-    
+
         $(".image_full").attr("src", IMG_PATH + item.url);
         $(".preview").attr("src", IMG_PATH + item.url);
-        
+
         // photo licence
         $(".license_text").text("©" + item.author + ' ' + item.license_name)
 
@@ -178,7 +178,7 @@ $(document).ready(function () {
         markerEstimated.setLatLng(new L.LatLng(item.predicted_lat, item.predicted_long));
         map.removeLayer(markerReal);
         map.removeLayer(markerEstimated);
-        
+
         map.setView([15.0, 0.0], zoom=2);
         markerUser.setLatLng([0.0, 0.0]);
 		markerUser.dragging.enable();
@@ -193,7 +193,7 @@ $(document).ready(function () {
 
     /**
      * Update the UI elements for distance to user and distance to model
-     * 
+     *
      * @param {*} distance_user the distance in km from user's marker to gt location
      * @param {*} distance_model the distance in km from model's marker to gt location
      */
@@ -242,19 +242,19 @@ $(document).ready(function () {
 		if (dataOpen.size == 0) {
 			return;
         }
- 
+
         $(".btn_show_result").prop("disabled", false); // activate button
         selectedKey = getRandomKey();
         console.debug("choose a random image: " + selectedKey);
         init(dataOpen.get(selectedKey));
-        
+
     });
 
     /**
      * Click event listener for current selected list-group-item.
      */
     $(document).on('click', '.list-group-item', function () {
-        
+
         // get key from data alias
         var $this = $(this);
         selectedKey = $this.data('alias');
@@ -302,13 +302,15 @@ $(document).ready(function () {
 
     });
 
-    
+
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         e.target // newly activated tab
         e.relatedTarget // previous active tab
-        
+
+        $('#btn_random_image').toggle();
+
         console.log("tab changed " + e.target);
-    
+
         if (dataOpen.size == 0) {
 
         } else if (dataClosed.size == 0) {
@@ -351,7 +353,7 @@ $(document).ready(function () {
         markerReal.addTo(map).update();
 		markerUser.dragging.disable();
 		move = false;
-        
+
 
         // show distance results
         var distance_user = markerReal.getLatLng().distanceTo(markerUser.getLatLng()) / 1000;
@@ -416,9 +418,9 @@ $(document).ready(function () {
     }
 
 
-    
+
     // when document ready:
-    
+
     // build the map
     var map = L.map('map', {
         center: L.latLng([0.0, 0.0]),
@@ -432,8 +434,8 @@ $(document).ready(function () {
             'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
         id: 'mapbox.streets',
     }).addTo(map);
-	
-	
+
+
 
     map.on("click", onMapClick); // set click listener
     markerUser.addTo(map); // add user marker
@@ -443,11 +445,11 @@ $(document).ready(function () {
     $("#distance_user").removeClass("alert-danger alert-success").addClass("alert-secondary");
     $("#distance_user").text("You: ");
     $("#distance_model").text("Model: ");
-    
+
 
     initialize_data();
     updateMapSize();
 
 
-   
+
 });
