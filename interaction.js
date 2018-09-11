@@ -1,12 +1,12 @@
 $(document).ready(function () {
 
+
     var IMG_PATH = ""; // when using local stored images
     var CSV_PATH = "demo/data/scene_M_p_im2gps.csv";
 
     var selectedKey = -1; // current selected key
-    var dataOpen = new Map(); // keeps not annotated images
-    var dataClosed = new Map(); // keeps annotated images
-	
+    var dataOpen = new Map();
+    var dataClosed = new Map()
 	var move = true;
 
     // map marker
@@ -35,10 +35,16 @@ $(document).ready(function () {
         var options = {
             draggable: true,
             icon: userIcon,
-            rotationAngle: deg
+            rotationAngle: deg,
+            zIndexOffset: 1000 // user marker always on top
         };
         return L.marker([0.0, 0.0], options);
     }
+
+    $('.close').on('click',function() {
+        //$(this).closest('.card').fadeOut();
+        //$('.collapse').toggle();
+      })
 
     /**
      * Creates a custom marker for GT and Machine.
@@ -73,29 +79,26 @@ $(document).ready(function () {
         return false;
     }
 
-    // todo: only use css
-    function updateListSize() {
-        $("#list-images-open").height(
-            $(window).height()
-            - $(".navbar").height() 
-            - $(".nav-tabs").height() 
-            - $("#btn_random_image").height()
-            - 72
-    
-        );
 
-        $("#list-images-closed").height(
-            $(window).height()
-            - $(".navbar").height() 
-            - $(".nav-tabs").height() 
-            - 52
-    
-        );
+    // have to set height of the map explicitly due to leaflet
+    function updateMapSize() {
+        if ($(window).width() < 768) {
+            $('#guess_location_desktop').hide();
+            $('#guess_location_mobile').show();
+        } else if ($(window).width() >= 600) {
+            $('#guess_location_desktop').show();
+            $('#guess_location_mobile').hide();
+        }
+        if ($(window).width() > 768) {
+            $('#map').height($('#image-card').height() - $('#legend').height() - 4);
+            
+        }
     }
 
     $(window).on('resize', function(){
-        updateListSize();
+        updateMapSize();
     });
+
 
     /**
      * Performs an ajax request to the CSV file and fills the data structures.
@@ -127,13 +130,11 @@ $(document).ready(function () {
                 selectedKey = dataOpen.keys().next().value;
                 console.debug(selectedKey);
                 init(dataOpen.get(selectedKey));
-                $("#btn_show_result").prop("disabled", false);
+                $(".btn_show_result").prop("disabled", false);
 
-                // tab text
-                $("#open_tab_title").html("Open<br>(" + dataOpen.size + "/" + (dataOpen.size + dataClosed.size) + ")");
-                $("#closed_tab_title").html("Annotated<br> (" + dataClosed.size + "/" + (dataOpen.size + dataClosed.size) + ")");
-            
-                updateListSize();
+                updateTabText();
+                
+                updateMapSize();
             }
         });
 
@@ -144,14 +145,15 @@ $(document).ready(function () {
      *
      * @param {*} img_path
      * @param {*} index
+     * @param {*} key the image id
      */
-    function addImageToList(img_path, index) {
+    function addImageToList(img_path, index, key) {
+        
         $("#list-images-open").append(
-            "<a class='list-group-item image_list_item' data-toggle='list' data-alias='" + index + "' id='" + index + "'>" +
+            "<a class='list-group-item' data-toggle='list' data-alias='" + index + "' id='" + index + "'>" +
             "<img src='" + img_path + "'  alt='' class='img-fluid round-borders'>" +
             "</a>"
         );
-
     }
 
     /**
@@ -164,11 +166,12 @@ $(document).ready(function () {
     }
 
     function init(item) {
-        // set as main image
+    
         $(".image_full").attr("src", IMG_PATH + item.url);
-
+        $(".preview").attr("src", IMG_PATH + item.url);
+        
         // photo licence
-        $("#license_text").text("©" + item.author + ' ' + item.license_name)
+        $(".license_text").text("©" + item.author + ' ' + item.license_name)
 
         // map preferences
         markerReal.setLatLng(new L.LatLng(item.gt_lat, item.gt_long));
@@ -188,6 +191,12 @@ $(document).ready(function () {
         $("#distance_model").text("Model: ");
     }
 
+    /**
+     * Update the UI elements for distance to user and distance to model
+     * 
+     * @param {*} distance_user the distance in km from user's marker to gt location
+     * @param {*} distance_model the distance in km from model's marker to gt location
+     */
     function resultUpdate(distance_user, distance_model) {
 
         $("#distance_user").html("<b>You:</b> " + distance_user.toFixed(2) + " km");
@@ -232,45 +241,59 @@ $(document).ready(function () {
     $("#btn_random_image").click(function () {
 		if (dataOpen.size == 0) {
 			return;
-		}
-        $("#btn_show_result").prop("disabled", false); // activate button
+        }
+ 
+        $(".btn_show_result").prop("disabled", false); // activate button
         selectedKey = getRandomKey();
         console.debug("choose a random image: " + selectedKey);
         init(dataOpen.get(selectedKey));
-
+        
     });
 
     /**
      * Click event listener for current selected list-group-item.
      */
     $(document).on('click', '.list-group-item', function () {
+        
         // get key from data alias
         var $this = $(this);
         selectedKey = $this.data('alias');
         console.debug("list group item selected");
 
-        // in which list the event was triggered?
+        // in which list was the event triggered?
         if (dataOpen.has(selectedKey)) {
             // just initialize this image
-            console.debug("selected element from open " + dataOpen.get(selectedKey));
             init(dataOpen.get(selectedKey));
-            $("#btn_show_result").prop("disabled", false);
+            $(".btn_show_result").prop("disabled", false);
 
         } else if (dataClosed.has(selectedKey)) {
             // view actually annotated results.
-            console.debug("selected element from closed " + dataClosed.get(selectedKey));
-            $("#btn_show_result").prop("disabled", true);
+            $(".btn_show_result").prop("disabled", true);
 
             var item = dataClosed.get(selectedKey);
-            $(".image_full").attr("src", IMG_PATH + item.url);
-            map.setView([15.0, 0.0], zoom=2);
-            markerUser.setLatLng(new L.LatLng(item.marker_user_lat, item.marker_user_lng));
+            $(".image_full_closed").attr("src", IMG_PATH + item.url);
+            $(".preview_closed").attr("src", IMG_PATH + item.url);
+            $(".license_text_closed").text("©" + item.author + ' ' + item.license_name)
+
+            //map.setView([15.0, 0.0], zoom=2);
+
             markerReal.setLatLng(new L.LatLng(item.gt_lat, item.gt_long));
             markerEstimated.setLatLng(new L.LatLng(item.predicted_lat, item.predicted_long));
-            markerEstimated.addTo(map).update();
-            markerReal.addTo(map).update();
+            markerEstimated.addTo(map);
+            markerReal.addTo(map);
+            markerUser.setLatLng(new L.LatLng(item.marker_user_lat, item.marker_user_lng));
 
-            // distanceTo() calculates the great circle distance (equal to stored values)
+            var latitudes = [markerReal.getLatLng().lat, markerEstimated.getLatLng().lat, markerUser.getLatLng().lat];
+            var longitudes = [markerReal.getLatLng().lng, markerEstimated.getLatLng().lng, markerUser.getLatLng().lng];
+            console.log(latitudes);
+            console.log(longitudes);
+            var corner1 = L.latLng(Math.min(...latitudes), Math.min(...longitudes));
+            var corner2 = L.latLng(Math.max(...latitudes), Math.max(...longitudes));
+            console.log(corner1);
+            console.log(corner2);
+            map.fitBounds(L.latLngBounds(corner1, corner2), {padding: [50, 50]});
+
+            // distanceTo() calculates the great circle distance (equal to stored values in csv)
             var distance_user = markerReal.getLatLng().distanceTo(markerUser.getLatLng()) / 1000;
             var distance_model = markerReal.getLatLng().distanceTo(markerEstimated.getLatLng()) / 1000;
             resultUpdate(distance_user, distance_model);
@@ -279,16 +302,49 @@ $(document).ready(function () {
 
     });
 
+    
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        e.target // newly activated tab
+        e.relatedTarget // previous active tab
+        
+        console.log("tab changed " + e.target);
+    
+        if (dataOpen.size == 0) {
+
+        } else if (dataClosed.size == 0) {
+            $('.alert-warning').alert();
+        } else {
+            $('.alert-warning').alert('close');
+        }
+
+    });
+
+    function updateTabText() {
+        $("#open_tab_title").html("Open (" + dataOpen.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+        $("#closed_tab_title").html("Annotated (" + dataClosed.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+    }
+
     /**
      * Event listener for Guess Location button click.
      *
      */
-    $("#btn_show_result").click(function () {
+    $(".btn_show_result").click(function () {
         var $this = $(this);
         $this.prop("disabled", true);
 
         // update markup popups and positions
-        map.setView([15.0, 0.0], zoom=2);
+        //map.setView([15.0, 0.0], zoom=2);
+
+        var latitudes = [markerReal.getLatLng().lat, markerEstimated.getLatLng().lat, markerUser.getLatLng().lat];
+        var longitudes = [markerReal.getLatLng().lng, markerEstimated.getLatLng().lng, markerUser.getLatLng().lng];
+        console.log(latitudes);
+        console.log(longitudes);
+        var corner1 = L.latLng(Math.min(...latitudes), Math.min(...longitudes));
+        var corner2 = L.latLng(Math.max(...latitudes), Math.max(...longitudes));
+        console.log(corner1);
+        console.log(corner2);
+        map.fitBounds(L.latLngBounds(corner1, corner2), {padding: [50, 50]});
+
         markerEstimated.bindPopup("<b>Model:</b><br>" + markerEstimated.getLatLng().toString());
         markerReal.bindPopup("<b>Ground Truth:</b><br>" + markerReal.getLatLng().toString());
         markerEstimated.addTo(map).update();
@@ -304,31 +360,38 @@ $(document).ready(function () {
 
         // update lists
         var item = dataOpen.get(selectedKey);
+
+
         // keep marker from user
         item.marker_user_lat = markerUser.getLatLng().lat;
         item.marker_user_lng = markerUser.getLatLng().lng;
+
         dataClosed.set(selectedKey, item);
+        // set preview closed image
+        if (dataClosed.size == 1) {
+            $(".image_full_closed").attr("src", IMG_PATH + item.url);
+            $(".license_text_closed").text("©" + item.author + ' ' + item.license_name)
+
+        }
 
         if (distance_user <= distance_model) {
             $("#list-images-closed").append(
-                "<a class='list-group-item image_list_item' data-toggle='list' data-alias='" + selectedKey + "' id='" + selectedKey + "'>" +
+                "<a class='list-group-item' data-toggle='list' data-alias='" + selectedKey + "' id='" + selectedKey + "'>" +
                 "<img src='" + IMG_PATH + dataClosed.get(selectedKey).url + "'  alt='' class='img-fluid round-borders' style='box-shadow: 0 0 20px #5cb85c;'>" +
                 "</a>"
             );
         } else {
             $("#list-images-closed").append(
-                "<a class='list-group-item image_list_item' data-toggle='list' data-alias='" + selectedKey + "' id='" + selectedKey + "'>" +
+                "<a class='list-group-item' data-toggle='list' data-alias='" + selectedKey + "' id='" + selectedKey + "'>" +
                 "<img src='" + IMG_PATH + dataClosed.get(selectedKey).url + "'  alt='' class='img-fluid round-borders' style='box-shadow: 0 0 20px #d9534f;'>" +
                 "</a>"
             );
         }
 
-
         dataOpen.delete(selectedKey); // remove item from dataOpen
         $("#" + selectedKey).remove() // remove item from open image list
 
-        $("#open_tab_title").html("Open<br>(" + dataOpen.size + "/" + (dataOpen.size + dataClosed.size) + ")");
-        $("#closed_tab_title").html("Annotated<br>(" + dataClosed.size + "/" + (dataOpen.size + dataClosed.size) + ")");
+        updateTabText();
 
         // update stats and view results
         number_images++;
@@ -352,8 +415,10 @@ $(document).ready(function () {
         markerUser.bindPopup("<b>Your estimation:</b><br>" + e.latlng.toString());
     }
 
-    // when document ready:
 
+    
+    // when document ready:
+    
     // build the map
     var map = L.map('map', {
         center: L.latLng([0.0, 0.0]),
@@ -378,8 +443,11 @@ $(document).ready(function () {
     $("#distance_user").removeClass("alert-danger alert-success").addClass("alert-secondary");
     $("#distance_user").text("You: ");
     $("#distance_model").text("Model: ");
+    
 
     initialize_data();
+    updateMapSize();
 
 
+   
 });

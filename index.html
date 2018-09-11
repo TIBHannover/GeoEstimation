@@ -1,245 +1,422 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <title>Geolocation Estimation</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <script src="demo/js/jquery.csv.min.js"></script>
-    <link rel="stylesheet" href="demo/leaflet/leaflet.css" />
-    <script src="demo/leaflet/leaflet.js"></script>
-    <script src="demo/leaflet/leaflet.rotatedMarker.js"></script>
+    <head>
+        <title>Geolocation Estimation</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+        <script src="demo/js/jquery.csv.min.js"></script>
+        <link rel="stylesheet" href="demo/leaflet/leaflet.css" />
+        <script src="demo/leaflet/leaflet.js"></script>
+        <script src="demo/leaflet/leaflet.rotatedMarker.js"></script>
 
-    <style>
-        html, body {
-            height: 100%;
-        }
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/solid.css" integrity="sha384-VGP9aw4WtGH/uPAOseYxZ+Vz/vaTb1ehm1bwx92Fm8dTrE+3boLfF1SpAtB1z7HW" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/regular.css" integrity="sha384-ZlNfXjxAqKFWCwMwQFGhmMh3i89dWDnaFU2/VZg9CvsMGA7hXHQsPIqS+JIAmgEq" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/fontawesome.css" integrity="sha384-1rquJLNOM3ijoueaaeS5m+McXPJCGdr5HcA03/VHXxcp2kX2sUrQDmFc3jR5i/C7" crossorigin="anonymous">
 
-        .center {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: auto;
-        }
+        <style>
+            html,
+            body {
+                height: 100%;
+            }
 
-        .cite {
-            padding: 2px;
-            padding-left: 10px;
-            color: #383d41;
-            background-color: #e2e3e5;
-            border-color: #d6d8db;
-            padding: .75rem 1.25rem;
-            margin-bottom: 1rem;
-            border: 1px solid transparent;
-            border-radius: .25rem;
-        }
+            .tib-red-text {
+                color: #AF1414;
+            }
 
-        .top_row_buffer {
-            margin-top: 10px;
-        }
+            .tib-red-bg {
+                background-color: #AF1414;
+                color: #eee;
+            }
 
-        .map_container {
-            padding-top: 60.0%;
-            position: relative;
-            width: 100%;
-            margin-bottom: 0.2rem;
-        }
-        .image_container {
-            padding-top: 90%;
-            position: relative;
-            height: 100%;
+            .center {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                width: auto;
+            }
 
-        }
+            .cite {
+                padding: 2px;
+                padding-left: 10px;
+                color: #383d41;
+                background-color: #e2e3e5;
+                border-color: #d6d8db;
+                padding: .5rem 1.0rem;
+                margin-bottom: 1rem;
+                border: 1px solid transparent;
+                border-radius: .25rem;
+            }
 
-        .custom-box {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-			background-color: #fff;
-        }
+            .top_row_buffer {
+                margin-top: 10px;
+            }
 
-        img.image_full {
-            max-width: 100%;
-            max-height: 90%;
-            object-fit: contain;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
 
-        #map {
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-        }
+            #map {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                min-height: 460px;
+                border-radius: 4px 0px;
+            }
 
-        .scrollable {
-            max-height: 100%;
-            overflow-y: auto;
-        }
+            @media only screen and (max-width: 600px) {
+                #map {
+                    position: relative;
+                    width: 100%;
+                    height: 200px;
+                    min-height: 200px;
+                    max-height: 200px;
+                }
+            }
 
-        .image_list_item {
-            padding: 5px 5px;
-            margin: 0px;
-        }
 
-    </style>
+            .preview,
+            .preview_closed {
+                width: 100%;
+                max-height: 90vh;
+                object-fit: contain;
+            }
 
-</head>
+            .list-group.list-group-horizontal {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                max-height: 100%;
+                height: 90px;
+                overflow-x: scroll;
+            }
 
-<body class="bg-light">
-    
-   
+            .list-group.list-group-horizontal .list-group-item {
+                margin: 0px;
+                height: 100%;
+                min-width: 90px;
+                padding: 0px 2px;
+            }
 
-    <nav class="navbar navbar-dark bg-white" style="box-shadow: 0px 0px 4px #ddd;">
-        <h4>Geolocation Estimation</h4>
-        <a href="https://www.tib.eu/en/" style="margin: 3px 100px 3px 0px;">
-            <img src="demo/style/images/logo.svg" width="74px" height="50px" class="d-inline-block align-top" alt="">
-        </a>
-    </nav>
+            .list-group.list-group-horizontal .list-group-item img {
+                object-fit: contain;
+                height: 100%;
+                min-height: 100%;
+                width: 100%;
+                min-height: 100%;
+            }
 
-    <div class="container-fluid" style="max-width: 1920px;">
-    
-    <div class="row top_row_buffer">
+            .list-group.list-group-horizontal .list-group-item:first-child {
+                border-top-right-radius: 0;
+                border-bottom-left-radius: 4px;
+            }
 
-            <div class="col-md-2">
-                <ul class="nav nav-tabs nav-fill">
+            .list-group.list-group-horizontal .list-group-item:last-child {
+                border-top-right-radius: 4px;
+                border-bottom-left-radius: 0;
+                border-right-width: 1px;
+            }
 
-                    <li class="nav-item" align="center">
-                        <a class="nav-link active" id="open_tab_title" data-toggle="tab" href="#open_tab">Open</a>
-                    </li>
-                    <li class="nav-item" align="center">
-                        <a class="nav-link" id="closed_tab_title" data-toggle="tab" href="#closed_tab">Annotated</a>
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <div id="open_tab" class="container tab-pane active bg-white" style="padding: 10px 0px;">
-                        <button id="btn_random_image" class="btn btn-secondary btn-block">Choose Random</button>
-                        <div class="list-group scrollable top_row_buffer" id="list-images-open">
+            .list-group.list-group.list-group-horizontal .list-group-item.active.show {
+                background-color: #AF1414;
+            }
+
+            .image_container {
+                position: relative;
+                height: 100%;
+                text-align: center;
+                color: #888;
+            }
+
+            #image-card-body {
+                padding: 5px 0px 5px 0px;
+            }
+
+            img.image_full {
+                max-width: 100%;
+                object-fit: contain;
+                max-height: 280px;
+            }
+
+            img.image_full_closed {
+                max-width: 100%;
+                object-fit: contain;
+                max-height: 280px;
+            }
+
+            .tab-content {
+                padding: 0px 0px;
+                margin: 0px 0px;
+            }
+
+            .alert {
+                padding: 2px 10px;
+            }
+
+            .coll-card.card-header:after {
+                font-family: 'Font Awesome\ 5 Free';
+                content: '\f107';
+                font-weight: 900;
+                float: right;
+            }
+
+            #image_list_tabs .nav-item .nav-link {
+                color: #AF1414;
+            }
+
+            #image_list_tabs .nav-item .nav-link:hover {
+                color: #AF1414;
+                background-color: #e3e3e3;
+            }
+
+            #image_list_tabs .nav-item .nav-link.active {
+                color: #000;
+            }
+
+            .card-header {
+                background-color: #fff;
+                color: #AF1414;
+            }
+
+            .card-footer {
+                background-color: #fff;
+                border: 1px solid #ddd;
+                border-radius: 0px 4px;
+            }
+
+            .padding-small {
+                padding: 5px 20px;
+            }
+
+            .btn_show_result:disabled {
+                background-color: #aaa;
+                color: #333;
+            }
+        </style>
+
+    </head>
+
+
+    <body class="bg-light">
+
+        <nav class="navbar navbar-light bg-white" style="box-shadow: 0px 0px 4px #888;">
+            <a href="https://github.com/TIBHannover/GeoEstimation" class="navbar-brand mr-0">
+                <h4 class="tib-red-text">Geolocation Estimation</h4>
+            </a>
+
+            <a href="https://www.tib.eu/de/"><img src="demo/style/images/logo.svg" width="74px" height="50px" class="d-inline-block align-top" alt=""></a>
+
+        </nav>
+
+
+
+
+        <div class="container-fluid" style="max-width: 1920px;">
+
+            <div class="row top_row_buffer align-items-end">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="coll-card card-header collapsed " data-toggle="collapse" href="#collapseExample">
+                            <a class="h6">Instructions</a>
+                        </div>
+
+                        <div class="card-body collapse show padding-small" id="collapseExample">
+                            <p>Estimate the geolocation of a picture by dragging or clicking the marker on the world map. Images can be chosen in the image selection by clickling on the thumbnail in the navigation bar. An enlarged view can be accessed by
+                                clicking on the preview. The performance compared to our approach is shown in the statistics window, where you can also reset the current annotations.
                         </div>
                     </div>
-
-                    <div id="closed_tab" class="container tab-pane" style="padding: 10px 0px;">
-                        <div class="list-group scrollable" id="list-images-closed"></div>
-                    </div>
-
                 </div>
+
+                <div class="col-md-6" id="guess_location_desktop">
+                    <button type='button' class='btn_show_result btn tib-red-bg btn-block btn-lg' disabled='true'>Guess Location</button>
+                </div>
+
+
 
             </div>
 
-            <div class="col-md-10">
 
-                <div class="row">
+            <div class="row">
+                <div class="col-md-6 top_row_buffer h-100">
+                    <div id="image-card" class="card h-100">
+                        <div class="card-header">
+                            <p class="card-title">Image Selection
+                                <button id="btn_random_image" class="btn btn-outline-secondary tib-red-text btn-sm float-right" style="border: 1px solid #AF1414;">Choose
+                                Random</button></p>
+                            <ul id="image_list_tabs" class="nav nav-tabs card-header-tabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="open_tab_title" data-toggle="tab" href="#open_tab">Open</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="closed_tab_title" data-toggle="tab" href="#closed_tab">Annotated</a>
+                                </li>
 
-                    <div class="col-lg-5">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Instructions</h5>
-                                <p>Estimate the location where the picture was taken by dragging or clicking the marker on the
-                                    world map. The image can be directly selected by clickling on the navigation bar on the
-                                    left side. The performance compared to a Convolutional Neural Network is shown on the
-                                    right side. For details on the deep learning approach please check our publication:</p>
-                                <div class="cite">
-                                    Eric Müller-Budack, Kader Pustu-Iren, Ralph Ewerth: Geolocation Estimation of Photos using a Hierarchical Model and Scene
-                                    Classification. In:
-                                    <span style="font-style: italic;">European Conference on Computer Vision (ECCV)</span>, Munich, 2018, Accepted for Publication.
+                            </ul>
+
+                        </div>
+                        <div id="image-card-body" class="card-body">
+                            <div class="tab-content">
+
+
+
+                                <div id="open_tab" class="tab-pane active bg-white" style="padding: 0px 0px;">
+                                    <div class="list-group list-group-horizontal" id="list-images-open">
+                                    </div>
+
+
+
+
+                                    <div class="image_container">
+                                        <p style="margin-bottom: 0px;" class="license_text">Photo License:</p>
+                                        <img class="image_full center rounded" src="" alt="" data-toggle="modal" data-target="#previewFull">
+                                    </div>
+
+
+
+                                </div>
+
+                                <div id="closed_tab" class="tab-pane" style="padding: 0px 0px;">
+                                    <div class='alert alert-warning' role='alert' style="margin: 20px; padding: 10px;">There are no images annotated.</div>
+
+                                    <div class="list-group list-group-horizontal" id="list-images-closed">
+
+                                    </div>
+
+
+                                    <div class="image_container">
+                                        <p style="margin-bottom: 0px;" class="license_text_closed"></p>
+                                        <img class="image_full_closed center rounded" src="" alt="" data-toggle="modal" data-target="#previewFullClosed">
+                                    </div>
+
+
+
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="col-lg-7">
-
-                    <div class="row h-100">
-                            <div class="col-lg-6">
-                                    <div class="card h-100" id="result_card">
-            
-                                        <div class="card-body">
-                                            <h5 class="card-title">Result</h5>
-            
-                                            <p>Distance to ground truth location:</p>
-            
-                                            <div class="alert alert-success" role="alert" id='distance_user'></div>
-            
-                                            <div class="alert alert-danger" role="alert" id='distance_model'></div>
-                                            <hr>
-                                            <button id="btn_show_result" type="button" class="btn btn-primary btn-block btn-lg" disabled="true">Guess Location</button>
-            
-            
-            
-                                        </div>
-                                    </div>
-                                </div>
-            
-            
-                                <div class="col-lg-6">
-                                    <div class="card h-100">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Statistics</h5>
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item" id="annotated_total_text">Annotated images: 0</li>
-                                                <li class="list-group-item" id="rate_of_sucess_text">Rate of sucess: ---</li>
-                                                <li class="list-group-item" id="mean_error_user_text">Your mean error: ---</li>
-                                                <li class="list-group-item" id="mean_error_model_text">Model's mean error: ---</li>
-                                            </ul>
-                                            <button id="reset_image_list" type="button" class="btn btn-link float-right">Reset</button>
-            
-            
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                    </div>
 
                     </div>
 
-                   
 
-                <div class="row top_row_buffer">
-                    <div class="col-lg-5">
-                            <div class="image_container">
-                                <div style="position: absolute;top: 0;left: 0;bottom: 0;right: 0;">
-                                        <img class="image_full center" src="" alt="" >
-                                        <p align="center" id="license_text">Photo License: </p>
-                                </div>
-                           
+
+                </div>
+
+
+                <div id="guess_location_mobile" style="width: 100%;">
+                    <div class="col w-100 top_row_buffer">
+                        <button type='button' class='btn_show_result btn tib-red-bg btn-block btn-lg' disabled='true'>Guess Location</button>
+                    </div>
+                </div>
+
+                <div class="col-md-6 h-100 top_row_buffer">
+                    <div id="map-card" class="card h-100" style="border: none;">
+                        <div class="card-body" style="padding: 0px;">
+                            <div id="map"></div>
                         </div>
-                   
-                    </div>
-                    <div class="col-lg-7">
-                        <div class="custom-box">
-                                <div class="map_container">
-                                        <div id="map"></div>
-                                </div>
-								<div style="padding: 2px 10px;">
-                                <img src="demo/leaflet/images/custom/marker_GT_world.svg" alt="ground truth marker" width="3%" height="3%">
+
+
+                        <div class="card-footer" style="padding: 2px 5px;">
+                            <div id="legend" style="text-align: right;">
+                                <img src="demo/leaflet/images/custom/marker_GT_world.svg" alt="ground truth marker" width="2%" height="2%">
                                 <small>Ground truth marker</small>
-                                <img src="demo/leaflet/images/custom/marker_machine.svg" alt="machine's marker" width="3%" height="3%">
+                                <img src="demo/leaflet/images/custom/marker_machine.svg" alt="machine's marker" width="2%" height="2%">
                                 <small>Model's marker</small>
-                                <img src="demo/leaflet/images/custom/marker_user.svg" alt="your marker" width="3%" height="3%">
+                                <img src="demo/leaflet/images/custom/marker_user.svg" alt="your marker" width="2%" height="2%">
                                 <small>Your marker</small>
-                                </div>
+                            </div>
                         </div>
-                        
 
-                    
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+
+
+
+
+
+
+                <div class="col-lg-3 col-md-6 top_row_buffer">
+                    <div class="card h-100" id="result_card">
+                        <div class="card-header">
+                            <a class="h6">Result</a>
+                        </div>
+                        <div class="card-body padding-small">
+
+
+                            <p>Distance to ground truth location:</p>
+                            <div class="alert alert-success" role="alert" id='distance_user'></div>
+                            <div class="alert alert-danger" role="alert" id='distance_model'></div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 top_row_buffer">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <a>Statistics
+                            <button id="reset_image_list" type="button" class="btn btn-link float-right" style="margin: 0px 0px -2px 0px; padding: 0px;">Reset</button>
+                            </a>
+                        </div>
+                        <div class="card-body padding-small">
+
+                            <ul class="list-unstyled" style="margin-bottom: 0px;">
+                                <li class="" id="annotated_total_text">Annotated images: 0</li>
+                                <li class="" id="rate_of_sucess_text">Rate of sucess: ---</li>
+                                <li class="" id="mean_error_user_text">Your mean error: ---</li>
+                                <li class="" id="mean_error_model_text">Model's mean error: ---</li>
+                            </ul>
+
+
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 col-md-12 top_row_buffer order-lg-first">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <a class="h6">Reference</a>
+                        </div>
+                        <div class="card-body padding-small">
+                            <p>
+                                For details on the deep learning approach please check our publication:
+                            </p>
+                            <div class="cite">
+                                Eric Müller-Budack, Kader Pustu-Iren, Ralph Ewerth: Geolocation Estimation of Photos using a Hierarchical Model and Scene Classification. In:
+                                <span style="font-style: italic;">European Conference on Computer Vision (ECCV)</span>, Munich, 2018, Accepted for Publication.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
 
         </div>
 
-    </div>
-</div>
+        </div>
+        </div>
 
-   
+        </div>
 
-</body>
+        <div id="previewFull" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <img src="" class="preview img-responsive rounded">
+            </div>
+        </div>
 
-<script src="interaction.js"></script>
+        <div id="previewFullClosed" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabelClosed" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <img src="" class="preview_closed img-responsive rounded">
+            </div>
+        </div>
+
+    </body>
+
+    <script src="interaction.js"></script>
+
 
 </html>
