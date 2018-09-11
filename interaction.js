@@ -171,7 +171,7 @@ $(document).ready(function () {
         $(".preview").attr("src", IMG_PATH + item.url);
 
         // photo licence
-        $(".license_text").text("©" + item.author + ' ' + item.license_name)
+        $(".license_text").text("©" + item.author + ' ' + item.license_name);
 
         // map preferences
         markerReal.setLatLng(new L.LatLng(item.gt_lat, item.gt_long));
@@ -307,9 +307,8 @@ $(document).ready(function () {
         e.target // newly activated tab
         e.relatedTarget // previous active tab
 
-        $('#btn_random_image').toggle();
-
         console.log("tab changed " + e.target);
+        $('#btn_random_image').toggle();
 
         if (dataOpen.size == 0) {
 
