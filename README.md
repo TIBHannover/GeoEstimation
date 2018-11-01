@@ -3,7 +3,7 @@ This is the official GitHub page for the paper ([Link](http://openaccess.thecvf.
 
 > Eric Müller-Budack, Kader Pustu-Iren, Ralph Ewerth:
 "Geolocation Estimation of Photos using a Hierarchical Model and Scene Classification".
-Forthcoming: *European Conference on Computer Vision (ECCV).* Munich, 2018.
+In: *European Conference on Computer Vision (ECCV)*, Munich, Springer, 2018, 575-592.
 
 # Demo
 
