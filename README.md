@@ -88,6 +88,8 @@ Please make sure to have the following python3 libraries installed:
 * numpy
 * s2sphere
 * tensorflow
+* matplotlib
+* scikit
 
 
 # Installation
