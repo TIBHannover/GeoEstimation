@@ -82,17 +82,18 @@ All models were trained using TensorFlow
 We are currently working on a deploy source code.
 
 # Requirements
+
 Please make sure to have the following python3 libraries installed:
 * caffe (pycaffe)
 * csv
+* matplotlib
 * numpy
 * s2sphere
+* scipy
 * tensorflow
-* matplotlib
-* scikit
-
 
 # Installation
+
 1. Clone this repository:
 ```
 git clone git@github.com:TIBHannover/GeoEstimation.git
