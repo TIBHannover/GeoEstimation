@@ -143,9 +143,18 @@ class GeoEstimator():
 
         # get gps coordinate from class
         lat, lng = self._cell_centers[self._num_partitionings - 1][predicted_cell_id]
+        print('Predicted cell id: {}'.format(predicted_cell_id))
         print('Predicted coordinate (lat, lng): ({}, {})'.format(lat, lng))
 
-        # get class activation map of prediction
+        # get class activation map of hierarchical prediction in the finest partitioning
+        # NOTE: prediction is the id in the finest partitioning, Pay attention to offset due to coarser partitionings
+        # Cropping the activations_weights and logits to solve the issue (   np.sum(self._classes_geo[0:p + 1]):   )
+        p = self._num_partitionings - 1
+        activation_weights_v = activation_weights_v[:, :, :, np.sum(self._classes_geo[0:p + 1]):]
+        logits_v = logits_v[np.sum(self._classes_geo[0:p + 1]):]
+
+        print(activation_weights_v.shape)
+
         cam = self.get_class_activation_map(activations_v, activation_weights_v, bboxes_v, predicted_cell_id,
                                             [img_v.shape[0], img_v.shape[1]])
 
