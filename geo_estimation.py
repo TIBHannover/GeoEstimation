@@ -146,14 +146,23 @@ class GeoEstimator():
         print('Predicted coordinate (lat, lng): ({}, {})'.format(lat, lng))
 
         # get class activation map of prediction
-        cam = self.get_class_activation_map(activations_v, activation_weights_v, bboxes_v, predicted_cell_id)
+        cam = self.get_class_activation_map(activations_v, activation_weights_v, bboxes_v, predicted_cell_id,
+                                            [img_v.shape[0], img_v.shape[1]])
 
         if show_cam:
             img_ovlr = self.create_cam_heatmap(img_v, cam)
             plt.imshow(img_ovlr)
             plt.show()
 
-        return predicted_cell_id, lat, lng, cam
+        return {
+            'predicted_cell_id': predicted_cell_id,
+            'lat': lat,
+            'lng': lng,
+            'cam': cam,
+            'activations': activations_v,
+            'activation_weights': activation_weights_v,
+            'logits': logits_v
+        }
 
     def create_cam_heatmap(self, img, cam, img_alpha=0.6):
         # create rgb overlay
@@ -167,7 +176,7 @@ class GeoEstimator():
         # create heatmap composite
         return img_alpha * np.expand_dims(img_gray, axis=-1) + (1 - img_alpha) * cam_ovlr[:, :, 0:3]
 
-    def get_class_activation_map(self, activations, activation_weights, bboxes, class_idx):
+    def get_class_activation_map(self, activations, activation_weights, bboxes, class_idx, output_size):
         # get weights of specified class
         prediction_activation_weights = activation_weights[0, 0, :, class_idx]
 
@@ -203,7 +212,8 @@ class GeoEstimator():
         cam -= np.min(cam)
         cam /= np.max(cam)
         cam = np.asarray(cam * 255 + 0.5, dtype=np.uint8)
-        cam = imresize(cam, [bboxes[-1][0] + img_size, bboxes[-1][1] + img_size])
+
+        cam = imresize(cam, output_size)
 
         return cam
 
