@@ -70,13 +70,13 @@ def main():
 
     # predict geolocation depending on model and scenery
     if scene_label == -1:
-        lat, lng = ge_base.get_prediction(args.image)
+        predicted_cell_id, lat, lng, cam = ge_base.get_prediction(args.image)
     if scene_label == 0:
-        lat, lng = ge_indoor.get_prediction(args.image)
+        predicted_cell_id, lat, lng, cam = ge_indoor.get_prediction(args.image)
     if scene_label == 1:
-        lat, lng = ge_natural.get_prediction(args.image)
+        predicted_cell_id, lat, lng, cam = ge_natural.get_prediction(args.image)
     if scene_label == 2:
-        lat, lng = ge_urban.get_prediction(args.image)
+        predicted_cell_id, lat, lng, cam = ge_urban.get_prediction(args.image)
 
     return 0
 

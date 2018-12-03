@@ -170,8 +170,8 @@ def resnet_v2(inputs,
   """
     with tf.variable_scope(scope, 'resnet_v2', [inputs], reuse=reuse) as sc:
         end_points_collection = sc.name + '_end_points'
-        with slim.arg_scope(
-            [slim.conv2d, bottleneck, resnet_utils.stack_blocks_dense], outputs_collections=end_points_collection):
+        with slim.arg_scope([slim.conv2d, bottleneck, resnet_utils.stack_blocks_dense],
+                            outputs_collections=end_points_collection):
             with slim.arg_scope([slim.batch_norm], is_training=is_training):
                 net = inputs
                 if include_root_block:
@@ -186,6 +186,7 @@ def resnet_v2(inputs,
                         net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
                     net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
                 net = resnet_utils.stack_blocks_dense(net, blocks, output_stride)
+                net = tf.identity(net, name='activations')
                 # This is needed because the pre-activation variant does not have batch
                 # normalization or activation functions in the residual unit output. See
                 # Appendix of [2].
