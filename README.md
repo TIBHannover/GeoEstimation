@@ -105,7 +105,7 @@ git clone git@github.com:TIBHannover/GeoEstimation.git
 ```
 python inference.py -i <PATH/TO/IMG/FILE>
 ```
-You can choose one of the following models for geolocatization: *Model=[ISN, base_M, base_L_m]*. *ISN* are the standard model.
+You can choose one of the following models for geolocatization: *Model=[base_L, base_M, ISN]*. *ISN* is the standard model.
 ```
 python inference.py -i <PATH/TO/IMG/FILE> -m <MODEL>
 ```
