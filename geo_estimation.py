@@ -92,7 +92,7 @@ class GeoEstimator():
     def get_prediction(self, img_path, show_cam=True):
         # read image
         img_path_ph = tf.placeholder(shape=[], dtype=tf.string)
-        img_content = tf.read_file(img_path)
+        img_content = tf.read_file(img_path_ph)
 
         # decode image
         img = tf.image.decode_jpeg(img_content, channels=3)
