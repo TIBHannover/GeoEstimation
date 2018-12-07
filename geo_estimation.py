@@ -1,5 +1,4 @@
 import argparse
-import caffe
 import csv
 import json
 import numpy as np
@@ -23,7 +22,6 @@ class GeoEstimator():
 
     def __init__(self, model_file, cnn_input_size=224, scope=None, use_cpu=False):
         print('Initialize {} geolocation model.'.format(scope))
-
         self._cnn_input_size = cnn_input_size
 
         # load model config
@@ -33,14 +31,17 @@ class GeoEstimator():
         # get partitioning
         print('\tGet geographical partitioning(s) ... ')
         partitioning_files = []
+        partitionings = []
         for partitioning in cfg['partitionings']:
             partitioning_files.append(os.path.join(os.path.dirname(__file__), 'geo-cells', partitioning))
+            partitionings.append(partitioning)
+        if len(partitionings) > 1:
+            partitionings.append('hierarchy')
 
-        self._num_partitionings = len(partitioning_files)
+        self._num_partitionings = len(partitioning_files)  # without hierarchy
 
         # red geo partitioning
         classes_geo, hexids2classes, class2hexid, cell_centers = self._read_partitioning(partitioning_files)
-
         self._classes_geo = classes_geo
         self._cell_centers = cell_centers
 
@@ -49,9 +50,7 @@ class GeoEstimator():
 
         # build cnn
         self._image_ph = tf.placeholder(shape=[3, self._cnn_input_size, self._cnn_input_size, 3], dtype=tf.float32)
-
         config = tf.ConfigProto()
-        #config.log_device_placement = True
         config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=config)
 
@@ -81,153 +80,128 @@ class GeoEstimator():
         var_list = {
             re.sub('^' + self.scope.name + '/', '', x.name)[:-2]: x for x in tf.global_variables(self.scope.name)
         }
-        saver = tf.train.Saver(var_list=var_list)
 
+        # restore weights
+        saver = tf.train.Saver(var_list=var_list)
         saver.restore(self.sess, model_file)
 
         # get activations from last conv layer and output weights in order to calculate class activation maps
         self.activations = tf.get_default_graph().get_tensor_by_name(self.scope.name + '_1/resnet_v2_101/activations:0')
-        self.activation_weights = tf.get_default_graph().get_tensor_by_name(self.scope.name +
-                                                                            '/classifier_geo/logits/weights:0')
+        activation_weights = tf.get_default_graph().get_tensor_by_name(self.scope.name +
+                                                                       '/classifier_geo/logits/weights:0')
 
-    def _img_preprocessing(self, img_path):
-        img = imread(img_path, mode='RGB')
-        height = img.shape[0]
-        width = img.shape[1]
+        # activation_bias = tf.get_default_graph().get_tensor_by_name(self.scope.name + '/classifier_geo/logits/biases:0')
+        # activation_weights = activation_weights + activation_bias
 
-        # get minimum and maximum coordinate
-        max_side_len = np.maximum(width, height)
-        min_side_len = np.minimum(width, height)
-        is_w, is_h = (0, 1) if (width < height) else (1, 0)
+        # store activation_weights of model
+        activation_weights_v = self.sess.run(activation_weights)
 
-        # resize image (smaller dimension should match cnn input size)
-        ratio = self._cnn_input_size / min_side_len
-        offset = (int(max_side_len * ratio + 0.5) - self._cnn_input_size) // 2
-        img_resized = imresize(img, size=[int(height * ratio + 0.5), int(width * ratio + 0.5)])
+        p_activation_weights = []
+        for p in range(self._num_partitionings):
+            p_activation_weights.append(
+                activation_weights_v[:, :, :,
+                                     np.sum(self._classes_geo[0:p + 1]):np.sum(self._classes_geo[0:p + 2])])
 
-        # get image crops according to image orientation
-        img_array = []
-        bboxes = []
-        for i in range(3):
-            bbox = [i * is_h * offset, i * is_w * offset, self._cnn_input_size, self._cnn_input_size]
-            img_crop = img_resized[bbox[0]:bbox[0] + bbox[2], bbox[1]:bbox[1] + bbox[3]]
-            img_crop = np.expand_dims(img_crop, axis=0)
+        self.network_dict = {
+            'activation_weights': p_activation_weights,
+            'partitionings': partitionings,
+            'classes_geo': self._classes_geo[1:],  # 0 was appended for simplification
+            'cell_centers': self._cell_centers,
+            'scope': self.scope.name
+        }
 
-            bboxes.append(bbox)
-            img_array.append(img_crop)
-
-        img_crops = np.concatenate(img_array, axis=0)
-
-        # normalize to -1 .. 1
-        img_crops = img_crops / 255.0
-        img_crops -= 0.5
-        img_crops *= 2.0
-
-        return img, img_crops, bboxes
-
-    def get_prediction(self, img_path, show_cam=True):
-        img, img_crops, bboxes = self._img_preprocessing(img_path)
+    def calc_output_dict(self, img_path, show_cam=True):
+        img_crops, bboxes = self._img_preprocessing(img_path)
 
         # feed forward batch of images in cnn and extract result
-        activations_v, activation_weights_v, logits_v = self.sess.run(
-            [self.activations, self.activation_weights, self.logits], feed_dict={self._image_ph: img_crops})
+        activations_v, logits_v = self.sess.run([self.activations, self.logits], feed_dict={self._image_ph: img_crops})
 
-        # softmax to get class probabilities with sum 1
-        logits_v[0, :] = self._softmax(logits_v[0, :])
-        logits_v[1, :] = self._softmax(logits_v[1, :])
-        logits_v[2, :] = self._softmax(logits_v[2, :])
+        # softmax to get class probabilities with sum 1 for each partition in each crop
+        for crop in range(logits_v.shape[0]):
+            for p in range(self._num_partitionings):
+                idx_s = np.sum(self._classes_geo[0:p + 1])
+                idx_e = np.sum(self._classes_geo[0:p + 2])
+                logits_v[crop, idx_s:idx_e] = self._softmax(logits_v[0, idx_s:idx_e])
 
         # fuse results of image crops using the maximum
-        logits_v = np.max(logits_v, axis=0)
+        logits_v = np.max(logits_v, axis=0)  # NOTE: sum of each partitioning will be > 1 while using mas
 
-        # assign logits to respective partitionings and get prediction (class with highest probability)
+        # assign logits to respective partitionings and get predictions (class with highest probability)
         partitioning_logits = []
         partitioning_pred = []
+        partitioning_gps = []
+
         for p in range(self._num_partitionings):
             p_logits = logits_v[np.sum(self._classes_geo[0:p + 1]):np.sum(self._classes_geo[0:p + 2])]
             p_pred = p_logits.argsort()
+            lat, lng = self._cell_centers[p][p_pred[-1]]
+
             partitioning_logits.append(p_logits)
             partitioning_pred.append(p_pred[-1])
+            partitioning_gps.append([lat, lng])
 
         # get hierarchical multipartitioning results
         hierarchical_logits = partitioning_logits[-1]  # get logits from finest partitioning
         if self._num_partitionings > 1:
             for c in range(self._classes_geo[-1]):  # num_logits of finest partitioning
                 for p in range(self._num_partitionings - 1):
-                    hierarchical_logits[c] *= partitioning_logits[p][self._cell_hierarchy[c][p]]
+                    hierarchical_logits[c] = hierarchical_logits[c] * partitioning_logits[p][self._cell_hierarchy[c][p]]
 
             pred = hierarchical_logits.argsort()
+            lat, lng = self._cell_centers[self._num_partitionings - 1][pred[-1]]
+
+            partitioning_logits.append(hierarchical_logits)
             partitioning_pred.append(pred[-1])
+            partitioning_gps.append([lat, lng])
 
-        predicted_cell_id = partitioning_pred[-1]
+        # normalize all logits so that each vector has sum 1
+        for p in range(len(partitioning_logits)):
+            partitioning_logits[p] = partitioning_logits[p] / np.sum(partitioning_logits[p])
 
-        # get gps coordinate from class
-        lat, lng = self._cell_centers[self._num_partitionings - 1][predicted_cell_id]
-        print('Predicted cell id: {}'.format(predicted_cell_id))
-        print('Predicted coordinate (lat, lng): ({}, {})'.format(lat, lng))
-
-        # get class activation map of hierarchical prediction in the finest partitioning
-        # NOTE: prediction is the id in the finest partitioning, Pay attention to offset due to coarser partitionings
-        # Cropping the activations_weights and logits to solve the issue (   np.sum(self._classes_geo[0:p + 1]):   )
-        p = self._num_partitionings - 1
-        activation_weights_v = activation_weights_v[:, :, :, np.sum(self._classes_geo[0:p + 1]):]
-        logits_v = logits_v[np.sum(self._classes_geo[0:p + 1]):]
-
-        cam = self.get_class_activation_map(activations_v, activation_weights_v, bboxes, predicted_cell_id,
-                                            [img.shape[0], img.shape[1]])
-
-        if show_cam:
-            img_ovlr = self.create_cam_heatmap(img, cam)
-            plt.imshow(img_ovlr)
-            plt.show()
-
-        return {
-            'predicted_cell_id': predicted_cell_id,
-            'lat': lat,
-            'lng': lng,
-            'cam': cam,
+        # return results
+        self.output_dict = {
+            'bboxes': bboxes,
+            'predicted_cell_ids': partitioning_pred,
+            'predicted_GPS_coords': partitioning_gps,
             'activations': activations_v,
-            'activation_weights': activation_weights_v,
-            'logits': logits_v
+            'logits': partitioning_logits,
         }
 
-    def create_cam_heatmap(self, img, cam, img_alpha=0.6):
-        # create rgb overlay
-        cm = plt.get_cmap('jet')
-        cam_ovlr = cm(cam)
+        return 0
 
-        # normalize to 0..1 and convert to grayscale
-        img = img / 255.0
-        img_gray = 0.299 * img[:, :, 0] + 0.587 * img[:, :, 1] + 0.114 * img[:, :, 2]
-
-        # create heatmap composite
-        return img_alpha * np.expand_dims(img_gray, axis=-1) + (1 - img_alpha) * cam_ovlr[:, :, 0:3]
-
-    def get_class_activation_map(self, activations, activation_weights, bboxes, class_idx, output_size):
-        # get weights of specified class
-        prediction_activation_weights = activation_weights[0, 0, :, class_idx]
+    def calc_class_activation_map(self, class_idx, partition_idx):
+        # get weights of specified class and partition
+        class_activation_weights = self.network_dict['activation_weights'][partition_idx][0, 0, :, class_idx]
 
         # get dimensions
-        num_crops, h, w, num_features = activations.shape
-        img_size = bboxes[0][-1]
-
+        num_crops, h, w, num_features = self.output_dict['activations'].shape
+        img_size = self.output_dict['bboxes'][0][-1]
         r = h / img_size
 
         # create output variables
-        cam = np.zeros(shape=[int(bboxes[-1][0] * r + 0.5) + w, int(bboxes[-1][1] * r + 0.5) + h])
-        num_activations = np.zeros(shape=[int(bboxes[-1][0] * r + 0.5) + w, int(bboxes[-1][1] * r + 0.5) + h])
+        cam = np.zeros(shape=[
+            int(self.output_dict['bboxes'][-1][0] * r + 0.5) + w,
+            int(self.output_dict['bboxes'][-1][1] * r + 0.5) + h
+        ])
 
+        num_activations = np.zeros(shape=[
+            int(self.output_dict['bboxes'][-1][0] * r + 0.5) + w,
+            int(self.output_dict['bboxes'][-1][1] * r + 0.5) + h
+        ])
+
+        # generate class activation map for each image crop
         for crop_idx in range(num_crops):
             # get activation map of current crop
-            crop_activations = activations[crop_idx, :, :, :]
-            crop_activation_map = prediction_activation_weights.dot(crop_activations.reshape((num_features, h * w)))
+            crop_activations = self.output_dict['activations'][crop_idx, :, :, :]
+            crop_activation_map = class_activation_weights.dot(crop_activations.reshape((num_features, h * w)))
             crop_activation_map = crop_activation_map.reshape(h, w)
 
-            # save values
+            # translate bbox coordinates from original image size to feature size
             feature_bbox = []
-            for entry in bboxes[crop_idx]:
+            for entry in self.output_dict['bboxes'][crop_idx]:
                 feature_bbox.append(int(entry * r + 0.5))
 
+            # store class activation map of the crop
             cam[feature_bbox[0]:feature_bbox[0] + w, feature_bbox[1]:feature_bbox[1] + h] += crop_activation_map
             num_activations[feature_bbox[0]:feature_bbox[0] + w, feature_bbox[1]:feature_bbox[1] + h] += 1
 
@@ -240,13 +214,75 @@ class GeoEstimator():
         cam /= np.max(cam)
         cam = np.asarray(cam * 255 + 0.5, dtype=np.uint8)
 
-        cam = imresize(cam, output_size)
-
         return cam
+
+    def draw_class_activation_map(self, img, class_activation_map, img_alpha=0.6, size=None):
+        # resize input images
+        if size is not None:
+            r = size / np.minimum(img.shape[0], img.shape[1])
+            img = imresize(img, size=[int(r * img.shape[0] + 0.5), int(r * img.shape[1] + 0.5)])
+
+        class_activation_map = imresize(class_activation_map, size=[img.shape[0], img.shape[1]])
+
+        # create rgb overlay
+        cm = plt.get_cmap('jet')
+        cam_ovlr = cm(class_activation_map)
+
+        # normalize to 0..1 and convert to grayscale
+        img = img / 255.0
+        img_gray = 0.299 * img[:, :, 0] + 0.587 * img[:, :, 1] + 0.114 * img[:, :, 2]
+
+        # create heatmap composite
+        cam_heatmap = img_alpha * np.expand_dims(img_gray, axis=-1) + (1 - img_alpha) * cam_ovlr[:, :, 0:3]
+
+        # visualize
+        plt.imshow(cam_heatmap)
+        plt.show()
+
+    def _img_preprocessing(self, img_path):
+        # read image
+        img = imread(img_path, mode='RGB')
+
+        # crop image into three evenly sampled crops
+        img_crops, bboxes = self._crop_image(img)
+
+        # normalize to -1 .. 1
+        img_crops = img_crops / 255.0
+        img_crops -= 0.5
+        img_crops *= 2.0
+
+        return img_crops, bboxes
 
     def _softmax(self, x):
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum(axis=0)
+
+    def _crop_image(self, img):
+        height = img.shape[0]
+        width = img.shape[1]
+
+        # get minimum and maximum coordinate
+        max_side_len = np.maximum(width, height)
+        min_side_len = np.minimum(width, height)
+        is_w, is_h = (0, 1) if (width < height) else (1, 0)
+
+        # resize image
+        ratio = self._cnn_input_size / min_side_len
+        offset = (int(max_side_len * ratio + 0.5) - self._cnn_input_size) // 2
+        img_resized = imresize(img, size=[int(height * ratio + 0.5), int(width * ratio + 0.5)])
+
+        # get crops according to image orientation
+        img_array = []
+        bboxes = []
+        for i in range(3):
+            bbox = [i * is_h * offset, i * is_w * offset, self._cnn_input_size, self._cnn_input_size]
+            img_crop = img_resized[bbox[0]:bbox[0] + bbox[2], bbox[1]:bbox[1] + bbox[3]]
+            img_crop = np.expand_dims(img_crop, axis=0)
+
+            bboxes.append(bbox)
+            img_array.append(img_crop)
+
+        return np.concatenate(img_array, axis=0), bboxes
 
     def _read_partitioning(self, partitioning_files):
         # define vars
@@ -337,41 +373,3 @@ class GeoEstimator():
         cell_parent = cell.id().parent(level)
         hexid = cell_parent.to_token()
         return hexid
-
-
-'''
-########################################################################################################################
-# MAIN TO TEST CLASS
-########################################################################################################################
-'''
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-i', '--image', type=str, required=True, help='path to image file')
-    parser.add_argument('-m', '--model', type=str, required=True, help='path to model file')
-    parser.add_argument('-c', '--cpu', action='store_true', help='use cpu')
-    args = parser.parse_args()
-    return args
-
-
-def main():
-    # load arguments
-    args = parse_args()
-
-    # check if gpu is available
-    if not tf.test.is_gpu_available():
-        print('No GPU available. Using CPU instead ... ')
-        args.cpu = True
-
-    # init scene classifier
-    ge = GeoEstimator(args.model, use_cpu=args.cpu)
-
-    # predict scene label
-    pred = ge.get_prediction(args.image)
-
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
