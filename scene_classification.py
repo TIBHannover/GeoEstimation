@@ -66,23 +66,16 @@ class SceneClassifier():
         # get the probabilites of the lvl 1 categories
         places3_prob = np.matmul(scene_probs, self.hierarchy_places3)[0]
 
-        print('indoor : {}'.format(places3_prob[0]))
-        print('natural: {}'.format(places3_prob[1]))
-        print('urban  : {}'.format(places3_prob[2]))
-
         return places3_prob
 
     def get_scene_label(self, scene_prob):
-        scene_label = np.argmax(scene_prob, axis=0)
-
-        if scene_label == 0:
-            print('Image shows indoor scenery!')
-        elif scene_label == 1:
-            print('Image shows natural scenery!')
-        elif scene_label == 2:
-            print('Image shows urban scenery!')
-
-        return scene_label
+        scene_label_int = np.argmax(scene_prob, axis=0)
+        if scene_label_int == 0:
+            return 'indoor'
+        elif scene_label_int == 1:
+            return 'natural'
+        else:  # scene_label_int == 2:
+            return 'urban'
 
 
 '''
