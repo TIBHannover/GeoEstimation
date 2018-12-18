@@ -193,7 +193,7 @@ def resnet_v2(inputs,
                 net = slim.batch_norm(net, activation_fn=tf.nn.relu, scope='postnorm')
                 if global_pool:
                     # Global average pooling.
-                    net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
+                    net = tf.reduce_mean(net, [1, 2], name='pool5', keepdims=True)
                 if num_classes is not None:
                     net = slim.conv2d(net, num_classes, [1, 1], activation_fn=None, normalizer_fn=None, scope='logits')
                 # Convert end_points_collection into a dictionary of end_points.
