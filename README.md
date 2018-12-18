@@ -109,17 +109,17 @@ or for a list of images with e.g.:
 ```
 python inference.py -i <PATH/TO/IMG/FILES/*.JPG>
 ```
-The visualization of class activation maps can be enabled using:
+The visualization of class activation maps can be enabled using ```-s```:
 ```
 python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -s
 ```
 You can choose one of the following models for geolocatization: *Model=[base_L, base_M, ISN]*. *ISN* is the standard model.
 ```
-python inference.py -i <PATH/TO/IMG/FILE> -m <MODEL>
+python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -m <MODEL>
 ```
-If you want to run the code on the cpu, please execute the following command:
+If you want to run the code on the cpu, please execute the script using the flag ```-c```:
 ```
-python inference.py -i <PATH/TO/IMG/FILE> -m <MODEL> -c
+python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -m <MODEL> -c
 ```
 
 # LICENSE
