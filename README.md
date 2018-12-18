@@ -105,6 +105,14 @@ git clone git@github.com:TIBHannover/GeoEstimation.git
 ```
 python inference.py -i <PATH/TO/IMG/FILE>
 ```
+or for a list of images with e.g.:
+```
+python inference.py -i <PATH/TO/IMG/FILES/*.JPG>
+```
+The visualization of class activation maps can be enabled using:
+```
+python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -s
+```
 You can choose one of the following models for geolocatization: *Model=[base_L, base_M, ISN]*. *ISN* is the standard model.
 ```
 python inference.py -i <PATH/TO/IMG/FILE> -m <MODEL>
