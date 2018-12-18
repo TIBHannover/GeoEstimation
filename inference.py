@@ -5,7 +5,11 @@ import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppresses unnecessarily excessive console output
 import tensorflow as tf
 
+<<<<<<< HEAD
 from imageio import imread as imread
+=======
+from scipy.misc import imread as imread
+>>>>>>> bf91ee94a84cd00931ac6912c8fcfded89e69eb5
 
 # own imports
 import scene_classification
@@ -47,7 +51,6 @@ def main():
         # init model for scene_classification
         sc = scene_classification.SceneClassifier(use_cpu=args.cpu)
 
-        # init models for geolocation estimation
         # init ISN for concept 'indoor'
         ge_indoor = geo_estimation.GeoEstimator(
             os.path.join(cur_path, 'models', 'ISN_M_indoor', 'model.ckpt'), scope='indoor', use_cpu=args.cpu)
@@ -68,7 +71,10 @@ def main():
         ge_base = geo_estimation.GeoEstimator(
             os.path.join(cur_path, 'models', 'base_M', 'model.ckpt'), scope='base_M', use_cpu=args.cpu)
 
+<<<<<<< HEAD
     # get predictions
+=======
+>>>>>>> bf91ee94a84cd00931ac6912c8fcfded89e69eb5
     i = 0
     for img_file in args.inputs:
         i += 1
@@ -95,13 +101,18 @@ def main():
             ge = ge_base
 
         print('\t--> Using {} network for geolocation'.format(ge.network_dict['scope']))
+<<<<<<< HEAD
         ge.calc_output_dict(img_file)
+=======
+        ge.calc_output_dict(img_path=img_file)
+>>>>>>> bf91ee94a84cd00931ac6912c8fcfded89e69eb5
         print('\t### GEOESTIMATION RESULTS ###')
 
         for p in range(len(ge.network_dict['partitionings'])):
             print('\tPredicted GPS coordinate (lat, lng) for partition <{}>: {}'.format(
                 ge.network_dict['partitionings'][p], ge.output_dict['predicted_GPS_coords'][p]))
 
+<<<<<<< HEAD
         # draw class activation map for the class with the highest probability in the finest available partition
         # NOTE: hierarchical classification is used if more than one partition available
         if args.show_cam:
@@ -113,6 +124,12 @@ def main():
             draw_cam.draw_class_activation_map(img, cam)
 
     return 0
+=======
+        # draw class activaion map of the predicted geo-cell using the finest/hierarchical result
+        cam = ge.calc_class_activation_map(class_idx=ge.output_dict['predicted_cell_ids'][-1], partition_idx=-1)
+        img = imread(img_file, mode='RGB')
+        ge.draw_class_activation_map(img, cam)
+>>>>>>> bf91ee94a84cd00931ac6912c8fcfded89e69eb5
 
 
 if __name__ == '__main__':

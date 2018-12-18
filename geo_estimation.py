@@ -43,7 +43,6 @@ class GeoEstimator():
 
         # red geo partitioning
         classes_geo, hexids2classes, class2hexid, cell_centers = self._read_partitioning(partitioning_files)
-
         self._classes_geo = classes_geo
         self._cell_centers = cell_centers
 
@@ -161,7 +160,7 @@ class GeoEstimator():
         # fuse results of image crops using the maximum
         logits_v = np.mean(logits_v, axis=0)
 
-        # assign logits to respective partitionings and get prediction (class with highest probability)
+        # assign logits to respective partitionings and get predictions (class with highest probability)
         partitioning_logits = []
         partitioning_pred = []
         partitioning_gps = []
@@ -204,6 +203,33 @@ class GeoEstimator():
     def _softmax(self, x):
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum(axis=0)
+
+    def _crop_image(self, img):
+        height = img.shape[0]
+        width = img.shape[1]
+
+        # get minimum and maximum coordinate
+        max_side_len = np.maximum(width, height)
+        min_side_len = np.minimum(width, height)
+        is_w, is_h = (0, 1) if (width < height) else (1, 0)
+
+        # resize image
+        ratio = self._cnn_input_size / min_side_len
+        offset = (int(max_side_len * ratio + 0.5) - self._cnn_input_size) // 2
+        img_resized = imresize(img, size=[int(height * ratio + 0.5), int(width * ratio + 0.5)])
+
+        # get crops according to image orientation
+        img_array = []
+        bboxes = []
+        for i in range(3):
+            bbox = [i * is_h * offset, i * is_w * offset, self._cnn_input_size, self._cnn_input_size]
+            img_crop = img_resized[bbox[0]:bbox[0] + bbox[2], bbox[1]:bbox[1] + bbox[3]]
+            img_crop = np.expand_dims(img_crop, axis=0)
+
+            bboxes.append(bbox)
+            img_array.append(img_crop)
+
+        return np.concatenate(img_array, axis=0), bboxes
 
     def _read_partitioning(self, partitioning_files):
         # define vars
