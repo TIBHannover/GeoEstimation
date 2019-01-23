@@ -9,6 +9,8 @@ In: *European Conference on Computer Vision (ECCV)*, Munich, Springer, 2018, 575
 
 A graphical demonstration where you can compete against the deep learning approach presented in the publication can be found on: https://tibhannover.github.io/GeoEstimation/
 
+Currently we are working on a new web-tool that additionally supports uploading and analyzing your own images. Please note that this service is still in the beta phase: https://labs.tib.eu/geoestimation
+
 # Content
 
 This repository contains:
