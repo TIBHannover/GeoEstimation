@@ -1,6 +1,8 @@
 import argparse
+import csv
 import glob
 import os
+import pandas as pd
 import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppresses unnecessarily excessive console output
 import tensorflow as tf
@@ -8,6 +10,7 @@ from imageio import imread as imread
 
 # own imports
 import scene_classification
+import utils
 import geo_estimation
 import draw_class_activation_maps as draw_cam
 
@@ -18,15 +21,17 @@ cur_path = os.path.abspath(os.path.dirname(__file__))
 def parse_args():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-i', '--inputs', nargs='+', type=str, required=True, help='path to image file(s)')
-    parser.add_argument(
-        '-m',
-        '--model',
-        type=str,
-        default='ISN',
-        choices=['ISN', 'base_L', 'base_M'],
-        help='Choose from [ISN, base_L, base_M]')
-    parser.add_argument(
-        '-s', '--show_cam', action='store_true', help='set flag to enable visualization of class activation maps')
+    parser.add_argument('-l', '--labels', type=str, required=False, help='path to ground truth labels')
+    parser.add_argument('-m',
+                        '--model',
+                        type=str,
+                        default='ISN',
+                        choices=['ISN', 'base_L', 'base_M'],
+                        help='Choose from [ISN, base_L, base_M]')
+    parser.add_argument('-s',
+                        '--show_cam',
+                        action='store_true',
+                        help='set flag to enable visualization of class activation maps')
     parser.add_argument('-c', '--cpu', action='store_true', help='use cpu')
     args = parser.parse_args()
     return args
@@ -44,29 +49,41 @@ def main():
     # init models
     if args.model == 'ISN':
         # init model for scene_classification
-        sc = scene_classification.SceneClassifier(use_cpu=args.cpu)
+        # NOTE: Caffe in Docker container is built without cpu support
+        sc = scene_classification.SceneClassifier(use_cpu=True)
 
         # init ISN for concept 'indoor'
-        ge_indoor = geo_estimation.GeoEstimator(
-            os.path.join(cur_path, 'models', 'ISN_M_indoor', 'model.ckpt'), scope='indoor', use_cpu=args.cpu)
+        ge_indoor = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'ISN_M_indoor', 'model.ckpt'),
+                                                scope='indoor',
+                                                use_cpu=args.cpu)
         # init ISN for concept 'natural'
-        ge_natural = geo_estimation.GeoEstimator(
-            os.path.join(cur_path, 'models', 'ISN_M_natural', 'model.ckpt'), scope='natural', use_cpu=args.cpu)
+        ge_natural = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'ISN_M_natural', 'model.ckpt'),
+                                                 scope='natural',
+                                                 use_cpu=args.cpu)
         # init ISN for concept 'urban'
-        ge_urban = geo_estimation.GeoEstimator(
-            os.path.join(cur_path, 'models', 'ISN_M_urban', 'model.ckpt'), scope='urban', use_cpu=args.cpu)
+        ge_urban = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'ISN_M_urban', 'model.ckpt'),
+                                               scope='urban',
+                                               use_cpu=args.cpu)
 
         ge_isns = {'indoor': ge_indoor, 'natural': ge_natural, 'urban': ge_urban}
 
     elif args.model == 'base_L':
-        ge_base = geo_estimation.GeoEstimator(
-            os.path.join(cur_path, 'models', 'base_L_m', 'model.ckpt'), scope='base_L_m', use_cpu=args.cpu)
+        ge_base = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'base_L_m', 'model.ckpt'),
+                                              scope='base_L_m',
+                                              use_cpu=args.cpu)
 
     elif args.model == 'base_M':
-        ge_base = geo_estimation.GeoEstimator(
-            os.path.join(cur_path, 'models', 'base_M', 'model.ckpt'), scope='base_M', use_cpu=args.cpu)
+        ge_base = geo_estimation.GeoEstimator(os.path.join(cur_path, 'models', 'base_M', 'model.ckpt'),
+                                              scope='base_M',
+                                              use_cpu=args.cpu)
+
+    if args.labels:  # read labels (if specified)
+        meta_info = pd.read_csv(args.labels)
+    else:  # create empty dataframe
+        meta_info = pd.DataFrame(columns=['IMG_ID', 'LAT', 'LON'])
 
     # get predictions
+    gc_dists = {}
     i = 0
     for img_file in args.inputs:
         i += 1
@@ -95,21 +112,45 @@ def main():
         print('\t--> Using {} network for geolocation'.format(ge.network_dict['scope']))
 
         ge.calc_output_dict(img_file)
-        print('\t### GEOESTIMATION RESULTS ###')
+        fname = os.path.basename(img_file)
+        img_meta = meta_info.loc[meta_info['IMG_ID'] == fname]
+        if len(img_meta) > 0:
+            img_meta = img_meta.iloc[0]
+        else:
+            img_meta = {}
 
+        print('\t### GEOESTIMATION RESULTS ###')
         for p in range(len(ge.network_dict['partitionings'])):
-            print('\tPredicted GPS coordinate (lat, lng) for partition <{}>: {}'.format(
-                ge.network_dict['partitionings'][p], ge.output_dict['predicted_GPS_coords'][p]))
+            p_name = ge.network_dict['partitionings'][p]
+            pred_loc = ge.output_dict['predicted_GPS_coords'][p]
+
+            # only calculate result if ground truth location is specified in args.labels
+            dist_str = ''
+            if 'LAT' in img_meta and 'LON' in img_meta:
+                if p_name not in gc_dists:
+                    gc_dists[p_name] = {}
+                gc_dists[p_name][fname] = utils.gc_distance(pred_loc, [img_meta['LAT'], img_meta['LON']])
+                dist_str = f' --> GCD to true location: {gc_dists[p_name][fname]:.2f} km'
+
+            print(f"\tPredicted GPS coordinate (lat, lng) for <{p_name}>: ({pred_loc[0]:.2f}, {pred_loc[1]:.2f})" +
+                  dist_str)
 
         # draw class activation map for the class with the highest probability in the finest available partition
         # NOTE: hierarchical classification is used if more than one partition available
         if args.show_cam:
             predicted_class = ge.output_dict['predicted_cell_ids'][-1]
-            cam = draw_cam.calc_class_activation_map(
-                ge.network_dict, ge.output_dict, class_idx=predicted_class, partition_idx=-1)
+            cam = draw_cam.calc_class_activation_map(ge.network_dict,
+                                                     ge.output_dict,
+                                                     class_idx=predicted_class,
+                                                     partition_idx=-1)
 
             img = imread(img_file)
             draw_cam.draw_class_activation_map(img, cam)
+
+    # print results for all files with specified gt location
+    if args.labels:
+        print('### TESTSET RESULTS ###')
+        utils.print_results(gc_dists)
 
 
 if __name__ == '__main__':
