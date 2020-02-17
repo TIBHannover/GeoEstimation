@@ -74,6 +74,7 @@ All models were trained using TensorFlow (1.14)
         --volume <PATH/TO/PROJECT/FOLDER>:/src \
         --volume <PATH/TO/IMAGE/FILES>:/img \
         -u $(id -u):$(id -g) -it <DOCKER_NAME> bash
+    cd /src
     ```
 
 
@@ -85,23 +86,23 @@ python inference.py -i <PATH/TO/IMG/FILE>
 ```
 or for a list of images with e.g.:
 ```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.JPG>
+python inference.py -i <PATH/TO/IMG/FILES/*.jpg>
 ```
 You can choose one of the following models for geolocalization: *Model=[base_L, base_M, ISN]*. *ISNs* are the standard models.
 ```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -m <MODEL>
+python inference.py -i <PATH/TO/IMG/FILES/*.jpg> -m <MODEL>
 ```
 In order to reproduce our paper results, [download the images](#training-and-testing-images) and provide the meta information file for [Im2GPS](meta/im2gps_places365.csv) or [Im2GPS3k](meta/im2gps3k_places365.csv). Note, that the image filename has to correspond to the `IMG_ID` in the meta information and run the following command:
 ```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -m <MODEL> -l <PATH/TO/META/INFORMATION>
+python inference.py -i <PATH/TO/IMG/FILES/*.jpg> -m <MODEL> -l <PATH/TO/META/INFORMATION>
 ```
 The visualization of class activation maps can be enabled using ```-s```:
 ```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -s
+python inference.py -i <PATH/TO/IMG/FILES/*.jpg> -s
 ```
 If you want to run the code on the cpu, please execute the script using the flag ```-c```:
 ```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.JPG> -m <MODEL> -c
+python inference.py -i <PATH/TO/IMG/FILES/*.jpg> -m <MODEL> -c
 ```
 
 ## LICENSE
