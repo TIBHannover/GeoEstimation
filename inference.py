@@ -9,7 +9,6 @@ import tensorflow as tf
 from imageio import imread as imread
 
 # own imports
-import scene_classification
 import utils
 import geo_estimation
 import draw_class_activation_maps as draw_cam
@@ -49,7 +48,8 @@ def main():
     # init models
     if args.model == 'ISN':
         # init model for scene_classification
-        # NOTE: Caffe in Docker container is built without cpu support
+        # NOTE: Caffe in Docker container is built without cpu support (unfortunately this is very slow)
+        import scene_classification
         sc = scene_classification.SceneClassifier(use_cpu=True)
 
         # init ISN for concept 'indoor'
@@ -89,10 +89,21 @@ def main():
         i += 1
         print('{} / {} Processing: {}'.format(i, len(args.inputs), img_file))
 
+        # get meta information if available
+        fname = os.path.basename(img_file)
+        img_meta = meta_info.loc[meta_info['IMG_ID'] == fname]
+        if len(img_meta) > 0:
+            img_meta = img_meta.iloc[0]
+        else:
+            img_meta = {}
+
         # predict scene label
         if args.model == 'ISN':
             # get scene label
-            scene_probabilities = sc.get_scene_probabilities(img_path=img_file)
+            if 'Prob_indoor' in img_meta and 'Prob_natural' in img_meta and 'Prob_urban' in img_meta:
+                scene_probabilities = [img_meta['Prob_indoor'], img_meta['Prob_natural'], img_meta['Prob_urban']]
+            else:
+                scene_probabilities = sc.get_scene_probabilities(img_path=img_file)
 
             print('\t### SCENECLASSIFICATION RESULTS ###')
             print('\tindoor : {}'.format(scene_probabilities[0]))
@@ -112,12 +123,6 @@ def main():
         print('\t--> Using {} network for geolocation'.format(ge.network_dict['scope']))
 
         ge.calc_output_dict(img_file)
-        fname = os.path.basename(img_file)
-        img_meta = meta_info.loc[meta_info['IMG_ID'] == fname]
-        if len(img_meta) > 0:
-            img_meta = img_meta.iloc[0]
-        else:
-            img_meta = {}
 
         print('\t### GEOESTIMATION RESULTS ###')
         for p in range(len(ge.network_dict['partitionings'])):
