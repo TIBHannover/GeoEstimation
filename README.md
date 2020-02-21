@@ -23,12 +23,12 @@ This repository contains:
 - Meta information for the
 [MP-16](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365.csv)
 training dataset as well as the [Im2GPS](meta/im2gps_places365.csv) and
-[Im2GPS3k](meta/im2gps3k_places365.csv) test datasets:
+[Im2GPS3k](meta/im2gps3k_places365.csv) test datasets
 - List of geographical cells for all partitionings:
 [coarse](geo-cells/cells_50_5000.csv),
 [middle](geo-cells/cells_50_2000.csv),
 [fine](geo-cells/cells_50_1000.csv)
-- Results for the reported approaches on [Im2GPS](results/im2gps) and [Im2GPS3k](results/im2gps3k) <approach_parameters.csv>:
+- Results for the reported approaches on [Im2GPS](results/im2gps) and [Im2GPS3k](results/im2gps3k) <approach_parameters.csv>
 - A python script to download all necessary resources to run the scripts `downloader.py`
 - Inference script to reproduce the paper results `inference.py`
 
