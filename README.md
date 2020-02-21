@@ -9,6 +9,8 @@ In: *European Conference on Computer Vision (ECCV)*, Munich, Springer, 2018, 575
 
 **17th February 2020:** Since our code is not compatible with TensorFlow 2 and relies on a Caffe model for scene classification, we have added a Dockerfile to simplify the [installation](#installation). In addition, we have modified the [inference script](#inference). It is now able to automatically generate the reported results in the paper for the testing datasets.
 
+**21th February 2020:** We have updated our code to TensorFlow 2 and provide a simplified training script. Unfortunately, the converted models achieve different results on the testing datasets. Please checkout the branch [*tf2*](https://github.com/TIBHannover/GeoEstimation/tree/tf2) to train your own models and follow the [instructions](#training).
+
 ## Demo
 
 A graphical demonstration where you can compete against the deep learning approach presented in the publication can be found on: https://tibhannover.github.io/GeoEstimation/
@@ -81,7 +83,6 @@ All models were trained using TensorFlow (1.14)
     cd /src
     ```
 
-
 ## Inference
 
 Run the inference script by executing the following command with an image of your choice:
@@ -106,6 +107,10 @@ python inference.py -i <PATH/TO/IMG/FILES/*.jpg> -m <MODEL> -l <PATH/TO/META/INF
 ```-s``` enables the visualization of class activation maps
 
 ```-c``` executes the script on the CPU
+
+## Training
+
+Please checkout the branch [tf2](https://github.com/TIBHannover/GeoEstimation/tree/tf2) and follow the instructions.
 
 ## LICENSE
 
