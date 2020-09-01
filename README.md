@@ -22,7 +22,7 @@ We also created an extended web-tool that additionally supports uploading and an
 This repository contains:
 - Meta information for the
 [MP-16](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365.csv)
-training dataset and [image urls](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365_url.csv) as well as the [Im2GPS](meta/im2gps_places365.csv) and
+training dataset and [image urls](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_urls.csv) as well as the [Im2GPS](meta/im2gps_places365.csv) and
 [Im2GPS3k](meta/im2gps3k_places365.csv) test datasets
 - List of geographical cells for all partitionings:
 [coarse](geo-cells/cells_50_5000.csv),
@@ -36,7 +36,7 @@ training dataset and [image urls](https://github.com/TIBHannover/GeoEstimation/r
 
 The (list of) image files for training and testing can be found on the following links:
 * MP-16: http://multimedia-commons.s3-website-us-west-2.amazonaws.com/
-* MP-16 (direct image links): https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365_url.csv
+* MP-16 (direct image links): https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_urls.csv
 * Im2GPS: http://graphics.cs.cmu.edu/projects/im2gps/
 * Im2GPS-3k: https://github.com/lugiavn/revisiting-im2gps/
 
