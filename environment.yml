@@ -1,0 +1,14 @@
+name: geoestimation-github-pytorch
+channels:
+  - pytorch
+  - conda-forge
+dependencies:
+  - python=3.8
+  - msgpack-python=1.0.0
+  - pandas=1.1.5
+  - yaml=0.2.5
+  - tqdm=4.50
+  - cudatoolkit=10.2
+  - pytorch=1.7.0
+  - torchvision=0.8.1
+  - pytorch-lightning=1.0.1
