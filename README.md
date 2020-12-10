@@ -7,9 +7,9 @@ In: *European Conference on Computer Vision (ECCV)*, Munich, Springer, 2018, 575
 
 ## News
 
-**17th February 2020:** Since our code is not compatible with TensorFlow 2 and relies on a Caffe model for scene classification, we have added a Dockerfile to simplify the [installation](#installation). In addition, we have modified the [inference script](#inference). It is now able to automatically generate the reported results in the paper for the testing datasets.
+**12th December 2020:**
+Restructured entire project. In addition, we release a PyTorch implementation and provide weights of a pre-trained base(M, f*) model.
 
-**21th February 2020:** We have updated our code to TensorFlow 2 and provide a simplified training script. Unfortunately, the converted models achieve different results on the testing datasets. Please checkout the branch [*tf2*](https://github.com/TIBHannover/GeoEstimation/tree/tf2) to train your own models and follow the [instructions](#training).
 
 ## Demo
 
@@ -20,98 +20,35 @@ We also created an extended web-tool that additionally supports uploading and an
 ## Content
 
 This repository contains:
-- Meta information for the
-[MP-16](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365.csv)
-training dataset and [image urls](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_urls.csv) as well as the [Im2GPS](meta/im2gps_places365.csv) and
-[Im2GPS3k](meta/im2gps3k_places365.csv) test datasets
-- List of geographical cells for all partitionings:
-[coarse](geo-cells/cells_50_5000.csv),
-[middle](geo-cells/cells_50_2000.csv),
-[fine](geo-cells/cells_50_1000.csv)
-- Results for the reported approaches on [Im2GPS](results/im2gps) and [Im2GPS3k](results/im2gps3k) <approach_parameters.csv>
-- A python script to download all necessary resources to run the scripts `downloader.py`
-- Inference script to reproduce the paper results `inference.py`
+- Branch `original_tf` where all information and pre-trained models are provided to reproduce the original results of the paper.
+- Branch `pytorch` where we provide a PyTorch implementation of the baseM model. This includes training, validation, testing, and inference.
+- This branch holds the demo and a script to create your own s2 partitionings.
 
-## Training and Testing Images
-
-The (list of) image files for training and testing can be found on the following links:
-* MP-16: http://multimedia-commons.s3-website-us-west-2.amazonaws.com/
-* MP-16 (direct image links): https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_urls.csv
-* Im2GPS: http://graphics.cs.cmu.edu/projects/im2gps/
-* Im2GPS-3k: https://github.com/lugiavn/revisiting-im2gps/
-
-## Geographical Cell Partitioning
+## Geographical S2 Cell Partitioning
 
 The geographical cell labels are extracted using the *S2 geometry library*:
 https://code.google.com/archive/p/s2-geometry-library/
 
-The python implementation *s2sphere* can be found on:
-http://s2sphere.readthedocs.io/en/
-
 The geographical cells can be visualized on:
 http://s2.sidewalklabs.com/regioncoverer/
 
-## Scene Classification
-
-The scene labels and probabilities are extracted using the *Places365 ResNet 152 model* from:
-https://github.com/CSAILVision/places365
-
-In order to generate the labels for the superordinate scene categories the *Places365 hierarchy* is used:
-http://places2.csail.mit.edu/download.html
-
-## Geolocation Models
-
-All models were trained using TensorFlow (1.14)
-
-* Baseline approach for middle partitioning: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/base_L_m.tar.gz)
-* Multi-partitioning baseline approach: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/base_M.tar.gz)
-* Multi-partitioning Individual Scenery Network for *S_3* concept *indoor*: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/ISN_M_indoor.tar.gz)
-* Multi-partitioning Individual Scenery Network for *S_3* concept *natural*: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/ISN_M_natural.tar.gz)
-* Multi-partitioning Individual Scenery Network for *S_3* concept *urban*: [Link](https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/ISN_M_urban.tar.gz)
-
-## Installation
-
-1. Either use the provided script using ```python downloader.py``` to get all necessary files or follow these instructions:
-    * Download the ResNet 152 model for scene classification trained on Places365 as well as the hierarchy file ([Links](#scene-classification)) and save all files in a new folder called */resources*
-    * Download and extract the TensorFlow model files ([Links](#geolocation-models)) for geolocation and save them in a new folder called */models*.
-2. We provide a docker container to run the code:
-    ```shell script
-    docker build <PROJECT_FOLDER> -t <DOCKER_NAME>
-    docker run \
-        --volume <PATH/TO/PROJECT/FOLDER>:/src \
-        --volume <PATH/TO/IMAGE/FILES>:/img \
-        -u $(id -u):$(id -g) -it <DOCKER_NAME> bash
-    cd /src
-    ```
-
-## Inference
-
-Run the inference script by executing the following command with an image of your choice:
+Create a partitioning using the following command for a given dataset (as CSV) which contains an image id, latitude and longitude:
 ```shell script
-python inference.py -i <PATH/TO/IMG/FILE>
+python create_cells.py [-h] [-v] --dataset DATASET --output OUTPUT --img_min IMG_MIN --img_max IMG_MAX [--lvl_min LVL_MIN]
+                       [--lvl_max LVL_MAX]
+# Optional arguments:
+#   -h, --help         show this help message and exit
+#   -v, --verbose      verbose output
+#   --dataset DATASET  Path to dataset csv file
+#   --output OUTPUT    Path to output directory
+#   --img_min IMG_MIN  Minimum number of images per geographical cell
+#   --img_max IMG_MAX  Maximum number of images per geographical cell
+#   --lvl_min LVL_MIN  Minimum partitioning level (default = 2)
+#   --lvl_max LVL_MAX  Maximum partitioning level (default = 30)
+#   --column_img_path  CSV input column name for image id / path
+#   --column_lat       CSV input column name latitude
+#   --column_lng       CSV input column name longitude
 ```
-or for a list of images with e.g.:
-```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.jpg>
-```
-You can choose one of the following models for geolocalization: *Model=[base_L, base_M, ISN]*. *ISNs* are the standard models.
-```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.jpg> -m <MODEL>
-```
-In order to reproduce our paper results, [download the images](#training-and-testing-images) and provide the meta information file for [Im2GPS](meta/im2gps_places365.csv) or [Im2GPS3k](meta/im2gps3k_places365.csv). Note, that the image filename has to correspond to the `IMG_ID` in the meta information and run the following command:
-```shell script
-python inference.py -i <PATH/TO/IMG/FILES/*.jpg> -m <MODEL> -l <PATH/TO/META/INFORMATION>
-```
-
-**Additional FLAGS:**
-
-```-s``` enables the visualization of class activation maps
-
-```-c``` executes the script on the CPU
-
-## Training
-
-Please checkout the branch [tf2](https://github.com/TIBHannover/GeoEstimation/tree/tf2) and follow the instructions.
 
 ## LICENSE
 
