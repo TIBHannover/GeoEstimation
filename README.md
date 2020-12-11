@@ -12,17 +12,16 @@ This code provides a PyTorch implementation and a pretrained ResNet50 model for 
 - [Inference](#Inference)
 - [Reproduce Results](#Reproduce-Results)
     - [Test on Already Trained Model](#Test-on-Already-Trained-Model)
-
-    - [Training from Scratch](#Training_from_Scratch)
+    - [Training from Scratch](#Training-from-Scratch)
 - [Geographical S2 Cell Partitioning](#Geographical-S2-Cell-Partitioning)
-- [Requirements](#InfRequirementserence)
+- [Requirements](#Requirements)
 - [Citation](#Citation)
 - [License](#LICENSE)
 
 
 ## Inference
 
-To use the pre-trained model by default, run:
+To use the pre-trained model by default, first download the model checkpoint by running:
 ```
 mkdir -p data/trained_models/baseM
 wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/epoch=014-val_loss=18.4833.ckpt -O data/trained_models/baseM/epoch=014-val_loss=18.4833.ckpt
@@ -173,8 +172,12 @@ python partitioning/create_cells.py [-h] [-v] --dataset DATASET --output OUTPUT 
 ```
  
 ## Requirements
+All requirements are listed in the `environment.yml`. We recomment to use [*conda*](https://docs.conda.io/en/latest/) to install all required packages in an individual environment.
 ```bash
-conda env create -f environment.yml && conda activate geoestimation-github-pytorch
+conda env create -f environment.yml 
+conda activate geoestimation-github-pytorch
+
+# download pre-calculated parititonings
 mkdir -p data/s2_cells
 wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_5000.csv -O data/s2_cells/cells_50_5000.csv
 wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_2000.csv -O data/s2_cells/cells_50_2000.csv
@@ -182,7 +185,7 @@ wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo
 ```
 
 ## Citation
-```
+```BibTeX
 @inproceedings{muller2018geolocation,
   author    = {Müller-Budack, Eric and Pustu-Iren, Kader and Ewerth, Ralph},
   title     = {Geolocation Estimation of Photos Using a Hierarchical Model and Scene
