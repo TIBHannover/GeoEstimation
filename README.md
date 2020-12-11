@@ -14,6 +14,7 @@ This code provides a PyTorch implementation and a pretrained ResNet50 model for 
     - [Test on Already Trained Model](#Test-on-Already-Trained-Model)
 
     - [Training from Scratch](#Training_from_Scratch)
+- [Geographical S2 Cell Partitioning](#Geographical-S2-Cell-Partitioning)
 - [Requirements](#InfRequirementserence)
 - [Citation](#Citation)
 - [License](#LICENSE)
@@ -48,7 +49,7 @@ Available argparse parameter:
     Number of workers for image loading and pre-processing
 
 ```
-Example output that is also stored in a `.csv` file:
+Example output that is also stored in a *CSV* file:
 ```
 img_id                                             p_key      pred_class  pred_lat   pred_lng 
 Tokyo_00070_439717934_3d0fd200f1_180_97324495@N00  hierarchy  5367        41.4902    -81.7032
@@ -72,7 +73,7 @@ wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/met
 python -m classification.test
 ```
 
-Available argparse paramter:
+Available argparse paramters:
 ```
 --checkpoint CHECKPOINT
     Checkpoint to already trained model (*.ckpt)
@@ -98,17 +99,21 @@ Results on the Im2GPS and Im2GPS3k test sets. The reported accuracies (in percen
 ##### Im2GPS:
  Model   |    1 |   25 |   200 |   750 |   2500 | 
 |:---------------|-----:|-----:|------:|------:|-------:
-| base(M, f)           | 15.6 | 39.2 |  48.9 |  65.8 |   78.5 | 
-| base(M, f*)      | 14.8 | 37.6 |  48.9 |  68.4 |   78.9 |
-| base(M, f*) (original)     | 15.2 | 40.9 |  51.5 |  65.4 |   78.5 |
+| base(M, c)     |  9.3 | 31.6 |  49.8 |  67.1 |   78.9 |
+| base(M, m)     | 13.9 | 34.6 |  48.1 |  68.4 |   79.3 |
+| base(M, f)     | 15.6 | 39.2 |  48.9 |  65.8 |   78.5 | 
+| __base(M, f*)__    | 14.8 | 37.6 |  48.9 |  68.4 |   78.9 |
+| __base(M, f*) (original)__     | 15.2 | 40.9 |  51.5 |  65.4 |   78.5 |
 
 ##### Im2GPS3k:
 
 | Model   |    1 |   25 |   200 |   750 |   2500 | 
 |:---------------|-----:|-----:|------:|------:|-------:
-| base(M, f)           |  9.9 | 27.3 |  36.2 |  51.2 |   66.4 |
-| base(M, f*)      | 10.1 | 28.0   |  36.9 |  51.1 |   67.0   |
-| base(M, f*) (original) | 9.7 | 27.0 | 35.6  | 49.2  | 66.0   |
+| base(M, c)     |  6.2 | 24.3 |  36.3 |  51.7 |   67.0 |
+| base(M, m)     |  8.3 | 26.2 |  35.7 |  51.4 |   66.5 |
+| base(M, f)     |  9.9 | 27.3 |  36.2 |  51.2 |   66.4 |
+| __base(M, f*)__    | 10.1 | 28.0 |  36.9 |  51.1 |   67.0 |
+| __base(M, f*) (original)__ | 9.7 | 27.0 | 35.6  | 49.2  | 66.0   |
 | ISN(M, f*, S3) (original) | 10.5 | 28.0 | 36.6  | 49.7  | 66.0   |
 
 ### Training from Scratch
@@ -145,6 +150,27 @@ python filter_by_downloaded_images.py
 python -m classification.train_base --config config/baseM.yml
 ```
 
+## Geographical S2 Cell Partitioning
+
+The geographical cell labels are extracted using the [*S2 geometry library*](https://code.google.com/archive/p/s2-geometry-library/) and can be visualized on http://s2.sidewalklabs.com/regioncoverer/.
+Create a partitioning using the following command for a given dataset (as *CSV* file) which contains an image id, latitude and longitude.
+We provide the partitionings that are used in the paper [below](#Requirements).
+```shell script
+python partitioning/create_cells.py [-h] [-v] --dataset DATASET --output OUTPUT --img_min IMG_MIN --img_max IMG_MAX [--lvl_min LVL_MIN]
+                       [--lvl_max LVL_MAX]
+# Optional arguments:
+#   -h, --help         show this help message and exit
+#   -v, --verbose      verbose output
+#   --dataset DATASET  Path to dataset csv file
+#   --output OUTPUT    Path to output directory
+#   --img_min IMG_MIN  Minimum number of images per geographical cell
+#   --img_max IMG_MAX  Maximum number of images per geographical cell
+#   --lvl_min LVL_MIN  Minimum partitioning level (default = 2)
+#   --lvl_max LVL_MAX  Maximum partitioning level (default = 30)
+#   --column_img_path  CSV input column name for image id / path
+#   --column_lat       CSV input column name latitude
+#   --column_lng       CSV input column name longitude
+```
  
 ## Requirements
 ```bash
