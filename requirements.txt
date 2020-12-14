@@ -1,2 +1,0 @@
-pandas==1.1.5
-s2sphere==0.2.5
