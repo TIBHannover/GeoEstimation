@@ -24,8 +24,8 @@ This code provides a PyTorch implementation and a pretrained ResNet50 model for 
 To use the pre-trained model by default, first download the model checkpoint by running:
 ```
 mkdir -p models/base_M
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/epoch=014-val_loss=18.4833.ckpt -O data/models/base_M/epoch=014-val_loss=18.4833.ckpt
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/hparams.yaml -O data/models/base_M/hparams.yaml
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/epoch=014-val_loss=18.4833.ckpt -O models/base_M/epoch=014-val_loss=18.4833.ckpt
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/hparams.yaml -O models/base_M/hparams.yaml
 ```
 
 Inference with pre-trained model:
