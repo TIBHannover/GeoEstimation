@@ -33,7 +33,6 @@ def parse_args():
     args.add_argument(
         "--gpu",
         action="store_true",
-        default=True,
         help="Use GPU for inference if CUDA is available",
     )
     args.add_argument("--batch_size", type=int, default=64)
@@ -55,7 +54,7 @@ model = MultiPartitioningClassifier.load_from_checkpoint(
     map_location=None,
 )
 model.eval()
-if args.gpu:
+if args.gpu and torch.cuda.is_available():
     model.cuda()
 
 print("Init dataloader")

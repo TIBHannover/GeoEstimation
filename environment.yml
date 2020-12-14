@@ -11,7 +11,7 @@ dependencies:
   - cudatoolkit=10.2
   - pytorch=1.6
   - torchvision=0.7
-  - pytorch-lightning=1.1.0
+  - pytorch-lightning=1.0.1
   - pip
   - pip:
     - s2sphere==0.2.5

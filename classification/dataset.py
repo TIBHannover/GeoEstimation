@@ -2,7 +2,7 @@ import os
 import sys
 import re
 from math import ceil
-from typing import Dict, Tuple, Union
+from typing import Dict, List, Tuple, Union
 from io import BytesIO
 import random
 from pathlib import Path
@@ -188,6 +188,7 @@ class FiveCropImageDataset(torch.utils.data.Dataset):
         meta_csv: Union[str, Path, None],
         image_dir: Union[str, Path],
         img_id_col: Union[str, int] = "img_id",
+        allowed_extensions: List[str] = ["jpg", "jpeg", "png"]
     ):
         if isinstance(image_dir, str):
             image_dir = Path(image_dir)
@@ -197,12 +198,18 @@ class FiveCropImageDataset(torch.utils.data.Dataset):
         if meta_csv is not None:
             print(f"Read {meta_csv}")
             self.meta_info = pd.read_csv(meta_csv)
+            self.meta_info.columns = map(str.lower, self.meta_info.columns)
+            # rename column names if necessary to use existing data
+            if "lat" in self.meta_info.columns:
+                self.meta_info.rename(columns={"lat": "latitude"}, inplace=True)
+            if "lon" in self.meta_info.columns:
+                self.meta_info.rename(columns={"lon": "longitude"}, inplace=True)
             self.meta_info["img_path"] = self.meta_info[img_id_col].apply(
                 lambda img_id: str(self.image_dir / img_id)
             )
         else:
             image_files = []
-            for ext in ["jpg", "jpeg", "png"]:
+            for ext in allowed_extensions:
                 image_files.extend([str(p) for p in self.image_dir.glob(f"**/*.{ext}")])
             self.meta_info = pd.DataFrame(image_files, columns=["img_path"])
             self.meta_info[self.img_id_col] = self.meta_info["img_path"].apply(

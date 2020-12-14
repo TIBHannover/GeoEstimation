@@ -4,7 +4,6 @@ import logging
 
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 import s2sphere as s2
 
 
