@@ -9,8 +9,9 @@ dependencies:
   - yaml=0.2.5
   - tqdm=4.50
   - cudatoolkit=10.2
-  - pytorch=1.7.0
-  - torchvision=0.8.1
-  - pytorch-lightning=1.0.1
+  - pytorch=1.6
+  - torchvision=0.7
+  - pytorch-lightning=1.1.0
+  - pip
   - pip:
     - s2sphere==0.2.5

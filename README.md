@@ -123,12 +123,8 @@ We provide a complete training script which is written in [PyTorch Lightning](ht
     - Due to no longer publicly available images, the size of the dataset might be smaller than the original.
     - We also store the images in chunks using [MessagePack](https://msgpack.org/) to speed-up the training process (similar to multiple TFRecord files)
 2) Given multiple s2 partitionings (e.g. coarse, middle, fine from the paper), the respective classes are assigned to each image on both datasets.
-3) Training and hyper-paramters:
-    - All hyper-paramters can be configured in `configs/baseM.yml`
-    - Compared to the model trained in the paper, following changes/modifications are made:
-       1) Changed CNN architecure from ResNet101 to ResNet50
-       2) For testing we take five crops instead of the mentioned three
-       3) Learning rate is lowered (factor 0.5) more often (after epoch 4, 8, 12, 13, 14 and 15)
+3) Training and hyper-paramters: All hyper-paramters can be configured in `configs/baseM.yml` as well as paramters from PyTorch Lightning [`Trainer`](https://pytorch-lightning.readthedocs.io/en/latest/trainer.html#trainer-class-api) class.
+
 
 Necessary steps:
 ```bash
