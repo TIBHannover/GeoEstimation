@@ -152,13 +152,13 @@ def parse_args():
     args.add_argument(
         "--output",
         type=Path,
-        default=Path("data/images/mp16"),
+        default=Path("resources/images/mp16"),
         help="Output directory where images are stored",
     )
     args.add_argument(
         "--url_csv",
         type=Path,
-        default=Path("data/mp16_urls.csv"),
+        default=Path("resources/mp16_urls.csv"),
         help="CSV with Flickr image id and URL for downloading",
     )
     args.add_argument(

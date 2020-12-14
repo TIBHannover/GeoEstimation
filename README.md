@@ -23,14 +23,14 @@ This code provides a PyTorch implementation and a pretrained ResNet50 model for 
 
 To use the pre-trained model by default, first download the model checkpoint by running:
 ```
-mkdir -p data/trained_models/baseM
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/epoch=014-val_loss=18.4833.ckpt -O data/trained_models/baseM/epoch=014-val_loss=18.4833.ckpt
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/hparams.yaml -O data/trained_models/baseM/hparams.yaml
+mkdir -p models/base_M
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/epoch=014-val_loss=18.4833.ckpt -O data/models/base_M/epoch=014-val_loss=18.4833.ckpt
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/hparams.yaml -O data/models/base_M/hparams.yaml
 ```
 
 Inference with pre-trained model:
 ```bash
-python -m classification.inference --image_dir data/images/im2gps/
+python -m classification.inference --image_dir resources/images/im2gps/
 ```
 
 Available argparse parameter:
@@ -64,11 +64,11 @@ The (list of) image files for testing can be found on the following links:
 * Im2GPS: http://graphics.cs.cmu.edu/projects/im2gps/
 * Im2GPS3k: https://github.com/lugiavn/revisiting-im2gps/
 
-Download and extract the two testsets (Im2GPS, Im2GPS3k) in `data/images/<dataset_name>` and run the evaluation script with the provided meta data, i.e., the ground-truth coordinate for each image.
+Download and extract the two testsets (Im2GPS, Im2GPS3k) in `resources/images/<dataset_name>` and run the evaluation script with the provided meta data, i.e., the ground-truth coordinate for each image.
 When using the default paramters, make sure that the pre-trained model is available. 
 ```bash
-wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/meta/im2gps_places365.csv -O data/images/im2gps_places365.csv
-wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/meta/im2gps3k_places365.csv -O data/images/im2gps3k_places365.csv
+wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/meta/im2gps_places365.csv -O resources/images/im2gps_places365.csv
+wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/meta/im2gps3k_places365.csv -O resources/images/im2gps3k_places365.csv
 python -m classification.test
 ```
 
@@ -129,14 +129,14 @@ We provide a complete training script which is written in [PyTorch Lightning](ht
 Necessary steps:
 ```bash
 # download and preprocess images
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_urls.csv -O data/mp16_urls.csv
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/yfcc25600_urls.csv -O data/yfcc25600_urls.csv 
-python download_images.py --output data/images/mp16 --url_csv data/mp16_urls.csv --shuffle
-python download_images.py --output data/images/yfcc25600 --url_csv data/yfcc25600_urls.csv --shuffle --size_suffix ""
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_urls.csv -O resources/mp16_urls.csv
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/yfcc25600_urls.csv -O resources/yfcc25600_urls.csv 
+python download_images.py --output resources/images/mp16 --url_csv resources/mp16_urls.csv --shuffle
+python download_images.py --output resources/images/yfcc25600 --url_csv resources/yfcc25600_urls.csv --shuffle --size_suffix ""
 
 # assign cell(s) for each image using the original meta information
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365.csv -O data/mp16_places365.csv
-wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/yfcc25600_places365.csv -O data/yfcc25600_places365.csv
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/v1.0/mp16_places365.csv -O resources/mp16_places365.csv
+wget https://github.com/TIBHannover/GeoEstimation/releases/download/pytorch/yfcc25600_places365.csv -O resources/yfcc25600_places365.csv
 python partitioning/assign_classes.py
 # remove images that were not downloaded 
 python filter_by_downloaded_images.py
@@ -174,10 +174,10 @@ conda env create -f environment.yml
 conda activate geoestimation-github-pytorch
 
 # download pre-calculated parititonings
-mkdir -p data/s2_cells
-wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_5000.csv -O data/s2_cells/cells_50_5000.csv
-wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_2000.csv -O data/s2_cells/cells_50_2000.csv
-wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_1000.csv -O data/s2_cells/cells_50_1000.csv
+mkdir -p resources/s2_cells
+wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_5000.csv -O resources/s2_cells/cells_50_5000.csv
+wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_2000.csv -O resources/s2_cells/cells_50_2000.csv
+wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_1000.csv -O resources/s2_cells/cells_50_1000.csv
 ```
 
 ## Citation

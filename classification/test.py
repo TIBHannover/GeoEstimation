@@ -16,28 +16,28 @@ def parse_args():
     args.add_argument(
         "--checkpoint",
         type=Path,
-        default=Path("data/trained_models/baseM/epoch=014-val_loss=18.4833.ckpt"),
+        default=Path("models/base_M/epoch=014-val_loss=18.4833.ckpt"),
         help="Checkpoint to already trained model (*.ckpt)",
     )
     args.add_argument(
         "--hparams",
         type=Path,
-        default=Path("data/trained_models/baseM/hparams.yaml"),
+        default=Path("models/base_M/hparams.yaml"),
         help="Path to hparams file (*.yaml) generated during training",
     )
     # testsets
     args.add_argument(
         "--image_dirs",
         nargs="+",
-        default=["data/images/im2gps", "data/images/im2gps3k"],
+        default=["resources/images/im2gps", "resources/images/im2gps3k"],
         help="Whitespace separated list of image folders to evaluate",
     )
     args.add_argument(
         "--meta_files",
         nargs="+",
         default=[
-            "data/images/im2gps_places365.csv",
-            "data/images/im2gps3k_places365.csv",
+            "resources/images/im2gps_places365.csv",
+            "resources/images/im2gps3k_places365.csv",
         ],
         help="Whitespace separated list of respective meta data (ground-truth GPS positions). Required columns: IMG_ID,LAT,LON",
     )

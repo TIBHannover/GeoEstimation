@@ -14,19 +14,19 @@ def parse_args():
     args.add_argument(
         "--checkpoint",
         type=Path,
-        default=Path("data/trained_models/baseM/epoch=014-val_loss=18.4833.ckpt"),
+        default=Path("models/base_M/epoch=014-val_loss=18.4833.ckpt"),
         help="Checkpoint to already trained model (*.ckpt)",
     )
     args.add_argument(
         "--hparams",
         type=Path,
-        default=Path("data/trained_models/baseM/hparams.yaml"),
+        default=Path("models/base_M/hparams.yaml"),
         help="Path to hparams file (*.yaml) generated during training",
     )
     args.add_argument(
         "--image_dir",
         type=Path,
-        default=Path("data/images/im2gps"),
+        default=Path("resources/images/im2gps"),
         help="Folder containing images. Supported file extensions: (*.jpg, *.jpeg, *.png)",
     )
     # environment
