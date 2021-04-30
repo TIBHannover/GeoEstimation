@@ -1,0 +1,45 @@
+out_dir: data/models/base_M/
+model_params:
+  arch: resnet50 # model architecture from torchvision namespace
+  weights: null # null -> all models are initialized with "ImageNet" weights or path to .ckpt to initialize from pre-trained model
+  batch_size: 128
+  val_check_interval: 4000 # validate after x steps (batches) i.e. batch_size*val_check_interval = n images
+  optim:
+    # SGD
+    params:
+      lr: 0.01
+      momentum: 0.9
+      weight_decay: 0.0001
+  scheduler:
+    # MultiStepLR
+    params:
+      gamma: 0.5
+      milestones: [4, 8, 12, 13, 14, 15]
+  partitionings:
+    ptype: default
+    shortnames: [coarse, middle, fine]
+    files:
+      - resources/s2_cells/cells_50_5000.csv
+      - resources/s2_cells/cells_50_2000.csv
+      - resources/s2_cells/cells_50_1000.csv
+  # images stored in chunks
+  msgpack_train_dir: resources/images/mp16
+  msgpack_val_dir: resources/images/yfcc25600
+  # meta information i.e. coordinates for each image
+  train_meta_path: resources/mp16_places365.csv
+  val_meta_path: resources/yfcc25600_places365.csv 
+  # mapping from image ids in msgpack dataset to target value(s)
+  # orient: index -> {"img_id": [t1, t2], ...}
+  train_label_mapping: resources/mp16_places365_mapping_h3.json
+  val_label_mapping: resources/yfcc_25600_places365_mapping_h3.json
+  key_img_id: id # image id name for msgpack dataset
+  key_img_encoded: image # image data name for msgpack dataset
+  num_workers_per_loader: 6
+# paramters for pytorch lightning trainer class
+trainer_params:
+  gpus: 1
+  max_epochs: 15
+  distributed_backend: null
+  precision: 16
+  reload_dataloaders_every_epoch: true # necessary to shuffle IterableDataset
+
