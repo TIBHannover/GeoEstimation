@@ -49,9 +49,7 @@ We have updated our code in PyTorch including scripts for training, inference an
     - [Test on Already Trained Model](#Test-on-Already-Trained-Model)
     - [Training from Scratch](#Training-from-Scratch)
 - [Geographical S2 Cell Partitioning](#Geographical-S2-Cell-Partitioning)
-- [Requirements](#Requirements)
-
-
+- [Installation and Requirements](#Requirements)
 
 ### Inference
 
@@ -95,12 +93,17 @@ Tokyo_00070_439717934_3d0fd200f1_180_97324495@N00  hierarchy  5367        41.490
 
 #### Test on Already Trained Model
 The (list of) image files for testing can be found on the following links:
-* Im2GPS: http://graphics.cs.cmu.edu/projects/im2gps/
+* Im2GPS: http://graphics.cs.cmu.edu/projects/im2gps/ (can be downloaded automatically)
 * Im2GPS3k: https://github.com/lugiavn/revisiting-im2gps/
 
 Download and extract the two testsets (Im2GPS, Im2GPS3k) in `resources/images/<dataset_name>` and run the evaluation script with the provided meta data, i.e., the ground-truth coordinate for each image.
 When using the default paramters, make sure that the pre-trained model is available. 
 ```bash
+# download im2gps testset
+mkdir resources/images/im2gps
+wget http://graphics.cs.cmu.edu/projects/im2gps/gps_query_imgs.zip -O resources/images/im2gps.zip
+unzip resources/images/im2gps.zip -d resources/images/im2gps/
+
 wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/meta/im2gps_places365.csv -O resources/images/im2gps_places365.csv
 wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/meta/im2gps3k_places365.csv -O resources/images/im2gps3k_places365.csv
 python -m classification.test
@@ -203,16 +206,17 @@ python partitioning/create_cells.py [-h] [-v] --dataset DATASET --output OUTPUT 
 ### Requirements
 All requirements are listed in the `environment.yml`. We recomment to use [*conda*](https://docs.conda.io/en/latest/) to install all required packages in an individual environment.
 ```bash
+# clone this repo
+git clone https://github.com/TIBHannover/GeoEstimation.git && cd GeoEstimation
+# install dependencies
 conda env create -f environment.yml 
 conda activate geoestimation-github-pytorch
-
 # download pre-calculated parititonings
 mkdir -p resources/s2_cells
 wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_5000.csv -O resources/s2_cells/cells_50_5000.csv
 wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_2000.csv -O resources/s2_cells/cells_50_2000.csv
 wget https://raw.githubusercontent.com/TIBHannover/GeoEstimation/original_tf/geo-cells/cells_50_1000.csv -O resources/s2_cells/cells_50_1000.csv
 ```
-
 
 ## Citation
 ```BibTeX

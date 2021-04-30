@@ -39,19 +39,18 @@ def parse_args():
             "resources/images/im2gps_places365.csv",
             "resources/images/im2gps3k_places365.csv",
         ],
-        help="Whitespace separated list of respective meta data (ground-truth GPS positions). Required columns: IMG_ID,LAT,LON",
+        help="Whitespace separated list of respective meta data (ground-truth GPS positions). Required columns: 'IMG_ID,LAT,LON' or 'img_id, latitude, longitude'",
     )
     # environment
     args.add_argument(
         "--gpu",
         action="store_true",
-        default=True,
-        help="Use GPU for inference if CUDA is available, default to True",
+        help="Use GPU for inference if CUDA is available",
     )
     args.add_argument(
         "--precision",
         type=int,
-        default=16,
+        default=32,
         help="Full precision (32), half precision (16)",
     )
     args.add_argument("--batch_size", type=int, default=64)
@@ -72,8 +71,10 @@ model = MultiPartitioningClassifier.load_from_checkpoint(
     map_location=None,
 )
 
-if args.gpu:
+if args.gpu and torch.cuda.is_available():
     args.gpu = 1
+else:
+    args.gpu = None
 trainer = pl.Trainer(gpus=args.gpu, precision=args.precision)
 
 print("Init Testsets")
@@ -105,7 +106,7 @@ for results, name in zip(r, [Path(x).stem for x in args.image_dirs]):
 df = pd.concat(dfs)
 
 print(df)
-fout = Path(args.checkpoint).parent / "_".join(
-    [x.stem for x in args.image_dirs] + ".csv"
-)
+fout = Path(args.checkpoint).parent / ("test-" + "_".join(
+    [str(Path(x).stem) for x in args.image_dirs]) + ".csv")
+print("Write to", fout)
 df.to_csv(fout)
