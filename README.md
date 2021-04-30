@@ -15,7 +15,7 @@ In: *European Conference on Computer Vision (ECCV)*, Munich, Springer, 2018, 575
 
 ## News
 
-**12th December 2020 - [*PyTorch*](Pytorch-Implementation) version:** 
+**12th December 2020 - [*PyTorch*](#Pytorch-Implementation) version:** 
 We release a PyTorch implementation and provide weights of a pre-trained `base(M, f*)` model with underlying ResNet50 architecture.
 
 **17th February 2020 - [*original_tf*](https://github.com/TIBHannover/GeoEstimation/tree/original_tf) branch:** 
@@ -25,8 +25,8 @@ Since our code is not compatible with TensorFlow 2 and relies on a Caffe model f
 ## Contents
 
 - [Web Demo](#Demo) 
-- [Reproduce Paper Results](Reproduce-Paper-Results): A seperate branch (*original_tf*() where all information and pre-trained models are provided to reproduce the original results of the paper.
-- [PyTorch Implementation](PyTorch-Implementation): A re-implemented version of the `base(M, f*)` model in PyTorch including code for training, validation, testing, and inference.
+- [Reproduce Paper Results](#Reproduce-Paper-Results): A seperate branch (*original_tf*() where all information and pre-trained models are provided to reproduce the original results of the paper.
+- [PyTorch Implementation](#PyTorch-Implementation): A re-implemented version of the `base(M, f*)` model in PyTorch including code for training, validation, testing, and inference.
 - [Citation](#Citation)
 - [License](#LICENSE)
 
