@@ -108,7 +108,8 @@ class MsgPackIterableMetaDataset(torch.utils.data.IterableDataset):
                 img = torchvision.transforms.Resize(320)(img)
 
             # apply all user specified image transformations
-            img = self.transformation(img)
+            if self.transformation is not None:
+                img = self.transformation(img)
 
         _id = x[self.key_img_id].decode("utf-8")
         meta = self.meta.loc[_id].to_dict()

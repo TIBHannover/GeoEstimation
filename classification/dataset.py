@@ -101,7 +101,9 @@ class MsgPackIterableDatasetMultiTargetWithDynLabels(torch.utils.data.IterableDa
             img = torchvision.transforms.Resize(320)(img)
 
         # apply all user specified image transformations
-        img = self.transformation(img)
+        if self.transformation is not None:
+            img = self.transformation(img)
+
         if self.meta_path is None:
             return img, x["target"]
         else:
