@@ -15,6 +15,11 @@ In: *European Conference on Computer Vision (ECCV)*, Munich, Springer, 2018, 575
 
 ## News
 
+**15th December 2025:**
+We decided to delete our models due to ethical concerns that were also pointed out by:
+
+> Haas, L., Skreta, M., Alberti, S., & Finn, C. (2024). Pigeon: Predicting image geolocations. In IEEE/CVF Conference on Computer Vision and Pattern Recognition (pp. 12893-12902). https://arxiv.org/pdf/2307.05845
+
 **12th December 2020 - [*PyTorch*](#Pytorch-Implementation) version:** 
 We release a PyTorch implementation and provide weights of a pre-trained `base(M, f*)` model with underlying ResNet50 architecture.
 
